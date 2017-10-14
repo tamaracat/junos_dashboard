@@ -1,0 +1,35 @@
+ {% extends 'layout.html' %}
+
+<title>SRX Policy Dashboard</title>
+<div align="center">
+    {% load static %}
+    <!-- Load the CSS template here -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" />
+    <!-- Add a header to the table -->
+    <div class="table-title">
+        <h3>SRX Policy Dashboard</h3>
+    </div>
+   {% block content %}
+      <div class="row">
+      <div class="col-sm-2">
+      </div>
+      <div class="col-sm-6 ">
+          <form action="submit" method="post">
+              {%csrf_token%}
+              <h3>Enter Source</h3>
+                <input type="text" name="info" ><br>
+                <br>
+                <h3>Enter Destination</h3>
+                <input type="text" name="info" ><br>
+                <input class="button primary" type="submit" value="Get Policies">
+            </form>
+
+            
+            
+                <!--{{ policies_list }}-->
+              
+    {% endblock %}
+
+   
+    <!-- Create our first row, which will be a list of each data center location -->
+</div>
