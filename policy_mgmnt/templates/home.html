@@ -12,15 +12,29 @@
    {% block content %}
       <div class="row">
       <div class="col-sm-2">
+          
       </div>
       <div class="col-sm-6 ">
+          <h3>Firewall Parser Application</h3>
           <form action="submit" method="post">
               {%csrf_token%}
-              <h3>Enter Source</h3>
-                <input type="text" name="info" ><br>
+              <select>
+                <option value="select_fw" option selected="true" disabled="disabled">Select Firewall</option>
+                <option value="EVDC">2020rdg-idf-fw-1-ci</option>
+                <option value="CHDC">abbt-232-021639-fw-1-ci</option>
+                <option value="TEST_SRX">lev-fw-srx-tns</option>
+            </select>
+            <br>
+            <br>
+              <h6>Enter Source Host</h6>
+                <input type="text" name="source_info" ><br>
                 <br>
-                <h3>Enter Destination</h3>
-                <input type="text" name="info" ><br>
+                <h6>Enter Destination Host</h6>
+                <input type="text" name="dest_info" ><br>
+                <br>
+                <h6>Enter Application Port</h6>
+                <input type="text" name="app_info" ><br>
+                <br>
                 <input class="button primary" type="submit" value="Get Policies">
             </form>
 

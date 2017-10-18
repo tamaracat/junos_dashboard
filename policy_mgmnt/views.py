@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 import subprocess
 from django.shortcuts import render
@@ -19,7 +18,7 @@ def policy_mgmnt(request):
 
 @ensure_csrf_cookie
 def submit(request):
-  info=request.POST['info']
+  # info=request.POST['info']
 
   a_fw = Firewall(firewall_name="new_firewall")
   a_fw = Firewall(firewall_manageip="3.3.3.3")
@@ -29,7 +28,6 @@ def submit(request):
   a_pol = Policies(name='newPol10', source_address='new_dest', destination_address='new_dest', application='new_app', annotation='ttangney')
   a_pol.save()
   print Policies(a_pol.name)
-
   class PolicyObject:
         def __init__(self, Policy, Source_Address, Destination_Address, Application):
           self.Policy = Policy,
@@ -57,7 +55,6 @@ def submit(request):
   }  
 
   return HttpResponse(template.render(context,request))
-    
 def home(request):
     # info=request.POST['info']
     
