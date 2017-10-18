@@ -8,3 +8,4 @@ from .models import Policies, Firewall
 
 admin.site.register(Firewall)
 admin.site.register(Policies)
+

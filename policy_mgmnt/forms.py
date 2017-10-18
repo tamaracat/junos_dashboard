@@ -1,5 +1,5 @@
 from django.forms import ModelForm, PasswordInput
-from .models import Firewall
+from .models import Policies, Firewall
 
 class FirewallForm(ModelForm):
     firewall_pass = CharField(widget=forms.PasswordInput)

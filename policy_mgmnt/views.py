@@ -4,9 +4,7 @@ import subprocess
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-
-
-
+from models import Firewall, Policies
 from django.views.decorators.csrf import ensure_csrf_cookie
 
 # Create your views here.
@@ -23,6 +21,14 @@ def policy_mgmnt(request):
 def submit(request):
   info=request.POST['info']
 
+  a_fw = Firewall(firewall_name="new_firewall")
+  a_fw = Firewall(firewall_manageip="3.3.3.3")
+  a_fw.save()
+  print (a_fw.firewall_name)
+
+  a_pol = Policies(name='newPol10', source_address='new_dest', destination_address='new_dest', application='new_app', annotation='ttangney')
+  a_pol.save()
+  print Policies(a_pol.name)
 
   class PolicyObject:
         def __init__(self, Policy, Source_Address, Destination_Address, Application):
@@ -32,30 +38,26 @@ def submit(request):
           self.Application = Application
       # do something with info
 #   p=subprocess.Popen(["python", "scripts/pyEZJuniper.py"], close_fds=True, stdout=subprocess.PIPE) 
-  p=subprocess.Popen(["python", "scripts/xmlPython.py"], close_fds=True, stdout=subprocess.PIPE) 
-  
+#   p=subprocess.Popen(["python", "scripts/xmlPython.py"], close_fds=True, stdout=subprocess.PIPE) 
+  p=subprocess.Popen(["python", "scripts/noConnJuniper.py"], close_fds=True, stdout=subprocess.PIPE) 
 
   data = p.communicate()
-
-  
-  print data[0]
 #   print data[0]
-#   return HttpResponse(p)
-#   return render(request, "submit.html", {data})
+  stringVar = ''.join(data[0])
+
+#   splirStr = stringVar.split(' ')
+  print stringVar
+
+#   stringVar.replace(' ', '\n')
+
   template = loader.get_template('submit.html')
 
-#   tupToString =  ''.join(data)
-#   mytext = "<br />".join(''.join(data).split("\n"))
-
   context = {
-        'policies': data[0],
+        'policies': stringVar,
   }  
 
   return HttpResponse(template.render(context,request))
     
-
-# This is our index page
-# @ensure_csrf_cookie
 def home(request):
     # info=request.POST['info']
     
