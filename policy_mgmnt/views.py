@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from models import Firewall, Policies
 from django.views.decorators.csrf import ensure_csrf_cookie
-
+from scripts.noConnJuniper import *
 # Create your views here.
 # Import stuff
 from django.template import loader
@@ -37,21 +37,17 @@ def submit(request):
       # do something with info
 #   p=subprocess.Popen(["python", "scripts/pyEZJuniper.py"], close_fds=True, stdout=subprocess.PIPE) 
 #   p=subprocess.Popen(["python", "scripts/xmlPython.py"], close_fds=True, stdout=subprocess.PIPE) 
-  p=subprocess.Popen(["python", "scripts/noConnJuniper.py"], close_fds=True, stdout=subprocess.PIPE) 
+  # p=subprocess.Popen(["python", "scripts/noConnJuniper.py"], close_fds=True, stdout=subprocess.PIPE) 
 
-  data = p.communicate()
-#   print data[0]
-  stringVar = ''.join(data[0])
-
-#   splirStr = stringVar.split(' ')
-  print stringVar
-
-#   stringVar.replace(' ', '\n')
+  # p=subprocess.call(['scripts/noConnJuniper.py', '13317', 'str'])
+  testVar = get_host_info("any", "any", "any")
+  print testVar
+  
 
   template = loader.get_template('submit.html')
 
   context = {
-        'policies': stringVar,
+        'policies': testVar,
   }  
 
   return HttpResponse(template.render(context,request))
@@ -72,4 +68,19 @@ def home(request):
     return render(request, "home.html", {})
     # return HttpResponse("This page will eventually be a magical dashboard!")
     
-# This is our function to build the HTML table
+@ensure_csrf_cookie
+def get_firewall(request):
+  info=request.POST['list_info']
+  
+  a_fw = Firewall(firewall_name="new_firewall")
+  a_fw = Firewall(firewall_manageip="3.3.3.3")
+  a_fw.save()
+  print (a_fw.firewall_name)
+
+  template = loader.get_template('home.html')
+
+  context = {
+        'policies': a_fw.firewall_name,
+  }  
+
+  return HttpResponse(template.render(context,request))
