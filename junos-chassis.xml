@@ -4,7 +4,7 @@
             <context-information>
                 <global-context/>
             </context-information>
-            <policies>
+             <policies>
                 <policy-information>
                     <policy-name>1</policy-name>
                     <policy-state>enabled</policy-state>
@@ -42,6 +42,7 @@
             </policies>
             <policies>
                 <policy-information>
+
                     <policy-name>policy_new</policy-name>
                     <policy-state>enabled</policy-state>
                     <policy-identifier>5</policy-identifier>
@@ -202,6 +203,74 @@
                     </policy-application-services>
                 </policy-information>
             </policies>
+                <policies>
+                    <policy-information>
+                        <policy-name>13317</policy-name>
+                        <policy-state>enabled</policy-state>
+                        <policy-identifier>2319</policy-identifier>
+                        <scope-policy-identifier>0</scope-policy-identifier>
+                        <policy-sequence-number>1</policy-sequence-number>
+                        <!--<multiple-source-zones junos:style="brief">-->
+                            <source-zone>
+                                <source-zone-name>any</source-zone-name>
+                            </source-zone>
+                        <!--</multiple-source-zones>-->
+                        <!--<multiple-destination-zones junos:style="brief">-->
+                            <destination-zone>
+                                <destination-zone-name>any</destination-zone-name>
+                            </destination-zone>
+                        <!--</multiple-destination-zones>-->
+                        <!--<source-addresses junos:style="brief">-->
+                            <source-address>
+                                <address-name>NELNET.TO.PROD.EXTERNAL.ADDRESSES.GLOBAL</address-name>
+                            </source-address>
+                            <source-address>
+                                <address-name>any</address-name>
+                            </source-address>
+                        <!--</source-addresses>-->
+                        <!--<destination-addresses junos:style="brief">-->
+                            <destination-address>
+                                <address-name>ses855papp1.ci.global</address-name>
+                            </destination-address>
+                            <destination-address>
+                                <address-name>ses855papp2.ci.global</address-name>
+                            </destination-address>
+                            <destination-address>
+                                <address-name>ses855papp3.ci.global</address-name>
+                            </destination-address>
+                            <destination-address>
+                                <address-name>ses855papp4.ci.global</address-name>
+                            </destination-address>
+                            <destination-address>
+                                <address-name>ses855papp5.ci.global</address-name>
+                            </destination-address>
+                            <destination-address>
+                                <address-name>ses855papp6.ci.global</address-name>
+                            </destination-address>
+                            <destination-address>
+                                <address-name>ses855papp7.ci.global</address-name>
+                            </destination-address>
+                            <destination-address>
+                                <address-name>ses855papp8.ci.global</address-name>
+                            </destination-address>
+                        <!--</destination-addresses>-->
+                        <!--<applications junos:style="brief">-->
+                            <application>
+                                <application-name>port-9000</application-name>
+                            </application>
+                        <!--</applications>-->
+                        <!--<source-identities junos:style="brief"></source-identities>-->
+                        <policy-action>
+                            <action-type>permit</action-type>
+                            <log/>
+                            <policy-tcp-options>
+                                <policy-tcp-options-syn-check>No</policy-tcp-options-syn-check>
+                                <policy-tcp-options-sequence-check>No</policy-tcp-options-sequence-check>
+                            </policy-tcp-options>
+                        </policy-action>
+                        <policy-application-services></policy-application-services>
+                    </policy-information>
+                </policies>
         </security-context>
     </security-policies>
     <cli>
