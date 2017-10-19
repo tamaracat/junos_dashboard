@@ -27,6 +27,7 @@ Flask-WTF==0.14.2
 gitdb2==2.0.2
 GitPython==2.1.5
 graphviz==0.8
+gunicorn==0.14.2
 idna==2.6
 ipaddress==1.0.18
 isort==4.2.5
