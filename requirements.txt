@@ -24,7 +24,6 @@ Flask-Cors==3.0.3
 Flask-HTTPAuth==3.2.3
 Flask-SQLAlchemy==2.2
 Flask-WTF==0.14.2
-functools32==3.2.3.post2
 gitdb2==2.0.2
 GitPython==2.1.5
 graphviz==0.8
