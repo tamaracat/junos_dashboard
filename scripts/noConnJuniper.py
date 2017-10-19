@@ -14,12 +14,12 @@ def get_host_info(source, dest, port):
   docroot = xmldoc.getroot()
   
   policies_list = []
-  
-
-  
-
+  i=0
   for ele in docroot.iter('{*}policy-information'):
     is_match=False
+    dest_match=False
+    app_match=False
+    i=i+1
     pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': []}
         
     for sourceAddr in ele.iter('{*}source-address'):
@@ -35,8 +35,6 @@ def get_host_info(source, dest, port):
         # print("Destination Address: {}".format(destAddr.find('{*}address-name').text))
     
     for app in ele.iter('{*}application'):
-        # final_app_name = app.find('application-name').text
-        # print final_app_name
       if(port == app.find('{*}application-name').text):
           is_match = True
           pol_dict["Port"].append(app.find('{*}application-name').text)
@@ -47,12 +45,9 @@ def get_host_info(source, dest, port):
       # print("Policy: {}".format(ele.find('{*}policy-name').text))
       if(is_match):
         policies_list.append(pol_dict)
-
-    return policies_list  
-  # sys.argv[1]:
-      
-  # policy_match = '13317'
-# Iterate through and print out policies
+      print i
+  return policies_list  
+  
   
     
   # print '\n'

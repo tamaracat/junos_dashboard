@@ -6,6 +6,14 @@ from django.db import models
 
 # Create your models here.
 
+class POST(models.Model): 
+    source_info = models.CharField('source', max_length=50)
+    dest_info = models.CharField('dest', max_length=50)
+    app_info = models.CharField('app', max_length=50)
+    
+    def __str__(self):
+        return self.source_info
+
 class Firewall(models.Model): 
     firewall_name = models.CharField('Firewall Name', max_length=50)
     firewall_manageip = models.GenericIPAddressField('Management IP')

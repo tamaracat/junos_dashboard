@@ -26,6 +26,7 @@ SSHClass = netmiko.ssh_dispatcher(device_type=juniper_ex2200['device_type'])
 device_conn = SSHClass(**juniper_ex2200)
 output = device_conn.send_command('show chassis hardware | display xml')
 PolOutput = device_conn.send_command('show security policies global | display xml')
+AddrOutput = device_conn.send_command('show security address-book | display xml')
 
 
 fd = open('junos-chassis.xml', 'w')

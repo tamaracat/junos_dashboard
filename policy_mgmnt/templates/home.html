@@ -28,18 +28,11 @@
             </select>
             </form>
             <br>
-              <h6>Enter Source Host</h6>
-                <input type="text" name="source_info" ><br>
-                <br>
-                <h6>Enter Destination Host</h6>
-                <input type="text" name="dest_info" ><br>
-                <br>
-                <h6>Enter Application Port</h6>
-                <input type="text" name="app_info" ><br>
-                <br>
+            <h6>Enter Source Host</h6>
             <form action="submit" method="post">
               {%csrf_token%}
-                <input class="button primary" type="submit" value="Get Policies">
+              {{ form }}
+                <input class="button primary" type="submit" value="Get Policies">   
             </form>
               
     {% endblock %}
