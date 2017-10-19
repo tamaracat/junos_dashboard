@@ -1,1 +1,1 @@
-web: gunicorn junos_dashboard.wsgi
+web: gunicorn junos_dashboard.app
