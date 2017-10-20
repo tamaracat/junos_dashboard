@@ -31,7 +31,9 @@
             <h6>Enter Source Host</h6>
             <form action="submit" method="post">
               {%csrf_token%}
-              {{ form }}
+              <table>
+              {{ form.as_table }}
+              </table>
                 <input class="button primary" type="submit" value="Get Policies">   
             </form>
               

@@ -17,13 +17,4 @@ class ContactForm(forms.Form):
     dest_info = forms.CharField(label='dest_info', max_length=50)
     app_info = forms.CharField(label='app_info', max_length=50)
 
-    # class Meta:
-    #   model = POST
-    #   fields = ('source_info', 'dest_info','app_info')
-
-    # clean_source()
-
-    # def clean_source(self):
-    #   data = self.cleaned_data['source_info']
-    #   return data
    
