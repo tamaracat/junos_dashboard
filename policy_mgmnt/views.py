@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from models import Firewall, Policies
 from django.views.decorators.csrf import ensure_csrf_cookie
-from scripts.noConnJuniper import *
+from scripts.xmlPython import *
 from .forms import ContactForm
 from django.template import loader
 # import sys, ast
