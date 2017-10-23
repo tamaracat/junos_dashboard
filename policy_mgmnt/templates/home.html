@@ -19,22 +19,17 @@
           <br>
           <form action="submit" method="post">
               <h3>Parse Policies</h3>
-              </br>
-              <select>
-                <option value="select_fw" option selected="true" disabled="disabled">Select Firewall</option>
-                <option value="EVDC" name="list_select">2020rdg-idf-fw-1-ci</option>
-                <option value="CHDC" name="list_select">abbt-232-021639-fw-1-ci</option>
-                <option value="TEST_SRX" name="list_select">lev-fw-srx-tns</option>
-            </select>
+              </br> 
             </form>
-            <br>
-            <h6>Enter Source Host</h6>
+            
             <form action="submit" method="post">
               {%csrf_token%}
               <table>
               {{ form.as_table }}
               </table>
+               
                 <input class="button primary" type="submit" value="Get Policies">   
+             
             </form>
               
     {% endblock %}

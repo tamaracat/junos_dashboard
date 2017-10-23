@@ -44,8 +44,8 @@ fd.close()
 #  END of # Netmiko Device Login
 '''
 
-hostname = '165.124.17.133'
-password = 'l1b2bstssrx'
+hostname = '165.124.8.5'
+password = 'c1b2bstsvsrx'
 
 username = "srxadmin"
 port = 22
@@ -58,11 +58,11 @@ try:
   client.connect(hostname, port=port, username=username, password=password)
 
   stdin, stdout, stderr = client.exec_command('show security policies global | display xml')
-  print stdout.read()
+  output = stdout.read()
 
   fd = open('junos-chassis.xml', 'w')
   # fd.write(output.strip())
-  fd.write('any')
+  fd.write(output)
   # print output
   fd.close()
 

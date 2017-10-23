@@ -3,7 +3,7 @@ import subprocess
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-from models import Firewall, Policies
+from models import Firewall, Policies, FirewallManager
 from django.views.decorators.csrf import ensure_csrf_cookie
 from scripts.xmlPython import *
 from .forms import ContactForm
@@ -25,6 +25,23 @@ def submit(request):
   return render(request, "submit.html", {"policies": policies})
  
 def home(request):
+    
+    # newFW = Firewall.firewalls.all()
+
+    # newFW.firewall_name = 'Matilda'
+    # newFW.firewall_manageip = "1.1.1.1"
+    # newFW.save() 
+    # print newFW.filter(firewall_name='chdc_test_voip_vsrx')
+
+    # firewall = Firewall.objects.create_firewall("testtest3", "1.2.2.5", "user", "pwd")
+
+    # newFW = Firewall.firewalls.first()
+
+    # print newFW.firewall_name
+
+    # fwGet = Firewall.objects.filter(firewall_name="test")
+
+    # print fwGet
 
     form = ContactForm()
  
