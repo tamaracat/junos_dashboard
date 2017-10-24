@@ -10,9 +10,19 @@ class POST(models.Model):
     source_info = models.CharField('source', max_length=50)
     dest_info = models.CharField('dest', max_length=50)
     app_info = models.CharField('app', max_length=50)
+    policy_info = models.CharField('policy_name', max_length=50, blank=True)
     
     def __str__(self):
         return self.source_info
+
+class POST_POL(models.Model): 
+    source_info = models.CharField('source', max_length=50)
+    dest_info = models.CharField('dest', max_length=50)
+    app_info = models.CharField('app', max_length=50)
+    
+    def __str__(self):
+        return self.source_info
+
 
 class FirewallManager(models.Manager):
     def create_firewall(self, firewall_name, firewall_manageip, firewall_user, firewall_pass):

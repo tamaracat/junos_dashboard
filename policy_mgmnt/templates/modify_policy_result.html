@@ -9,15 +9,8 @@
         <h3>SRX Policy Dashboard</h3>
     </div>
    {% block content %}
-             
-    {% for Policy in policies %}
-    <div>
-        <p>Policy: {{ Policy.Policy }}</p>
-        <p>Source: {{ Policy.Source }}</p>
-        <p>Dest: {{ Policy.Dest }}</p>
-        <p>App: {{ Policy.Port }}</p>
-    </div>
-{% endfor %}
+            
+                {{ policies }}
           
     {% endblock %}
 

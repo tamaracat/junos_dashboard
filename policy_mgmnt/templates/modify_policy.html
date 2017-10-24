@@ -1,0 +1,39 @@
+ {% extends 'layout.html' %}
+
+<title>SRX Policy Dashboard</title>
+<div>
+    {% load static %}
+    <!-- Load the CSS template here -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" />
+    <!-- Add a header to the table -->
+    <div class="table-title">
+        <h3>SRX Policy Dashboard</h3>
+    </div>
+   {% block content %}
+      <div class="row">
+      <div class="col-sm-2">
+          
+      </div>
+      <div class="col-sm-6 ">
+          <h3>Firewall Ticket Resolution Application</h3>
+          <br>
+          <form action="submit" method="post">
+              <h3>Modify Existing Juniper Policy</h3>
+              </br> 
+            </form>
+            
+            <form action="modify_policy_result" method="POST">
+              {%csrf_token%}
+              <table>
+              {{ form.as_table }}
+              </table>
+               
+                <input class="button primary" type="submit" value="Get Policy">   
+             
+            </form>
+              
+    {% endblock %}
+
+   
+    <!-- Create our first row, which will be a list of each data center location -->
+</div>

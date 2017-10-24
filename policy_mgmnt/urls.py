@@ -8,6 +8,8 @@ urlpatterns = [
  url(r'^policy_mgmnt/', views.home, name='policy_mgmnt'),
  url(r'^$', views.home, name='policy_mgmnt'),
  url(r'^submit', views.submit),
+ url(r'^modify_policy', views.modify_policy),
+ url(r'^modify_policy_result', views.modify_policy_result),
  url(r'^home', views.home)
 ]
 

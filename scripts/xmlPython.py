@@ -44,10 +44,10 @@ fd.close()
 #  END of # Netmiko Device Login
 '''
 
-hostname = '165.124.8.5'
-password = 'c1b2bstsvsrx'
+hostname = '129.105.46.204'
+password = 'wl2tv@tmey'
 
-username = "srxadmin"
+username = "tct1859"
 port = 22
 
 try:
@@ -84,6 +84,7 @@ def get_host_info(source, dest, port):
     pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': []}
         
     for sourceAddr in ele.iter('{*}source-address'):
+      
       if(source == sourceAddr.find('{*}address-name').text ):
         is_match = True
         pol_dict['Source'].append(sourceAddr.find('{*}address-name').text)
@@ -107,4 +108,62 @@ def get_host_info(source, dest, port):
       if(is_match):
         policies_list.append(pol_dict)
       print i
+  return policies_list  
+
+def get_host_access_info(source):
+    
+  xmldoc = etree.parse('junos-chassis.xml')
+  docroot = xmldoc.getroot()
+  
+  policies_list = []
+  i=0
+  for ele in docroot.iter('{*}policy-information'):
+    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': []}
+    is_match=False
+    for sourceAddr in ele.iter('{*}source-address'):
+      is_match=False
+      if(source == sourceAddr.find('{*}address-name').text ):
+        pol_dict['Source'].append(sourceAddr.find('{*}address-name').text)
+        is_match = True
+        pol_dict['Policy'] = ele.find('{*}policy-name').text 
+    for destAddr in ele.iter('{*}destination-address'): 
+      pol_dict['Dest'].append(destAddr.find('{*}address-name').text)
+    for app in ele.iter('{*}application'):
+      pol_dict["Port"].append(app.find('{*}application-name').text)
+    if is_match:    
+      policies_list.append(pol_dict)
+
+  return policies_list 
+
+
+def get_policy_info(pol_name):
+ 
+  print pol_name   
+  policies_list = []
+    
+  xmldoc = etree.parse('junos-chassis.xml')
+  docroot = xmldoc.getroot()
+  
+        
+  for ele in docroot.iter('{*}policy-information'):
+    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': []}
+    is_match=False
+    i=0
+    for i in range(len(pol_name)):
+      print "policies"
+      print pol_name[i]
+      for name in ele.iter('{*}policy-name'):
+        
+        if(pol_name[i] == name.find('{*}policy-name').text):
+          is_match = True
+          pol_dict['Policy'] = ele.find('{*}policy-name').text 
+          # print policy
+          pol_dict['Source'].append(sourceAddr.find('{*}address-name').text)
+          pol_dict['Dest'].append(destAddr.find('{*}address-name').text)
+          pol_dict["Port"].append(app.find('{*}application-name').text)
+
+      policies_list.append(pol_dict)
+
+      print policies_list
+
   return policies_list  
