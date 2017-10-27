@@ -111,7 +111,7 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-ENCRYPTED_FIELDS_KEYDIR = './fieldkeys'
+ENCRYPTED_FIELDS_KEYDIR = os.path.join(BASE_DIR, './fieldkeys')
 LOGIN_REDIRECT_URL = '/'
 # Internationalization
 # https://docs.djangoproject.com/en/1.11/topics/i18n/

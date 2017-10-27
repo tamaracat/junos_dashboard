@@ -44,30 +44,42 @@ fd.close()
 #  END of # Netmiko Device Login
 '''
 
-hostname = '129.105.46.204'
-password = 'wl2tv@tmey'
+# hostname = '165.124.8.5'
+# password = 'c1b2bstsvsrx'
 
-username = "tct1859"
-port = 22
+# username = "tct1859"
 
-try:
-  client = paramiko.SSHClient()
-  client.load_system_host_keys()
-  client.set_missing_host_key_policy(paramiko.WarningPolicy)
+
+def connect_to_firewall(hostname, username, password):
+  connect = False
+  port = 22
+
+  try:
+    client = paramiko.SSHClient()
+    client.load_system_host_keys()
+    client.set_missing_host_key_policy(paramiko.WarningPolicy)
     
-  client.connect(hostname, port=port, username=username, password=password)
+    client.connect(hostname, port=port, username=username, password=password)
 
-  stdin, stdout, stderr = client.exec_command('show security policies global | display xml')
-  output = stdout.read()
+    stdin, stdout, stderr = client.exec_command('show security policies global | display xml')
+    output = stdout.read()
 
-  fd = open('junos-chassis.xml', 'w')
-  # fd.write(output.strip())
-  fd.write(output)
-  # print output
-  fd.close()
+    fd = open('junos-chassis.xml', 'w')
+    # fd.write(output.strip())
+    fd.write(output)
+    # print output
+    fd.close()
 
-finally:
-    client.close()
+    connect = True
+
+  except:
+    print "ERROR -- Failed to connect to {}".format(hostname)
+    connect = False
+
+  finally:
+      client.close()
+      
+  return connect
 
 def get_host_info(source, dest, port):
 
@@ -77,7 +89,7 @@ def get_host_info(source, dest, port):
   policies_list = []
   i=0
   for ele in docroot.iter('{*}policy-information'):
-    is_match=False
+    src_match=False
     dest_match=False
     app_match=False
     i=i+1
@@ -86,26 +98,26 @@ def get_host_info(source, dest, port):
     for sourceAddr in ele.iter('{*}source-address'):
       
       if(source == sourceAddr.find('{*}address-name').text ):
-        is_match = True
+        src_match = True
         pol_dict['Source'].append(sourceAddr.find('{*}address-name').text)
         # print("Source Address: {}".format(sourceAddr.find('{*}address-name').text))
     
     for destAddr in ele.iter('{*}destination-address'):  
       if(dest == destAddr.find('{*}address-name').text):
-          is_match = True
+          dest_match = True
           pol_dict['Dest'].append(destAddr.find('{*}address-name').text)
         # print("Destination Address: {}".format(destAddr.find('{*}address-name').text))
     
     for app in ele.iter('{*}application'):
       if(port == app.find('{*}application-name').text):
-          is_match = True
+          app_match = True
           pol_dict["Port"].append(app.find('{*}application-name').text)
         # print("Application: {}".format(app.find('{*}application-name').text))
 
         # print("Policy: {}".format(policy_to_match))  
       pol_dict['Policy'] = ele.find('{*}policy-name').text 
       # print("Policy: {}".format(ele.find('{*}policy-name').text))
-      if(is_match):
+      if(src_match & dest_match & app_match):
         policies_list.append(pol_dict)
       print i
   return policies_list  
@@ -148,22 +160,26 @@ def get_policy_info(pol_name):
   for ele in docroot.iter('{*}policy-information'):
     pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': []}
     is_match=False
-    i=0
-    for i in range(len(pol_name)):
-      print "policies"
-      print pol_name[i]
-      for name in ele.iter('{*}policy-name'):
-        
-        if(pol_name[i] == name.find('{*}policy-name').text):
-          is_match = True
-          pol_dict['Policy'] = ele.find('{*}policy-name').text 
-          # print policy
-          pol_dict['Source'].append(sourceAddr.find('{*}address-name').text)
-          pol_dict['Dest'].append(destAddr.find('{*}address-name').text)
-          pol_dict["Port"].append(app.find('{*}application-name').text)
+    # print "policy name passed in {}".format(pol_name)
+    if(pol_name == ele.find('{*}policy-name').text):
+      is_match = True
+      pol_dict['Policy'] = ele.find('{*}policy-name').text 
+      for sourceAddr in ele.iter('{*}source-address'):
+        pol_dict['Source'].append(sourceAddr.find('{*}address-name').text)
+      for destAddr in ele.iter('{*}destination-address'): 
+        pol_dict['Dest'].append(destAddr.find('{*}address-name').text)
+      for app in ele.iter('{*}application'):
+        pol_dict["Port"].append(app.find('{*}application-name').text)
+      if is_match: 
+        policies_list.append(pol_dict)
 
-      policies_list.append(pol_dict)
-
-      print policies_list
+        # print policies_list
 
   return policies_list  
+
+def clone_ruleset(old_host):
+
+  '''
+  show configuration | display set | match old_host
+
+  '''

@@ -49,7 +49,7 @@ class Policies(models.Model):
     destination_address = models.CharField('Destination_Address', max_length=10, default=1)
     application = models.CharField('Application', max_length=10, default=1)
     annotation = models.CharField('Annotation', max_length=10, blank=True, default=1)
-    updated = models.BooleanField('Policy Present?', default=False, blank=True)
+    firewall =  models.CharField('Firewall Name', blank=True, max_length=50)
     policies = models.Manager()
     # Metadata
     class Meta: 

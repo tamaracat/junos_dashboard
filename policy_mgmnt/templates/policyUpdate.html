@@ -10,23 +10,18 @@
         <h3>SRX Policy Dashboard</h3>
     </div>
    {% block content %}
-      <div class="row">
-      <div class="col-sm-2">
-          
-      </div>
-      <div class="col-sm-6 ">
+   
+     
           <h3>Firewall Ticket Resolution Application</h3>
           <br>
-            <h3>Parse Policies</h3>
-        </br> 
-            
-        <form action="submit" method="post">
-          {%csrf_token%}
-          <table>
-            {{ form.as_table }}
-          </table>     
-            <input class="button primary" type="submit" value="Get Policies">       
-        </form>
+            <h3>Juniper Policy To Modify</h3>
+            <br>
+      {{ title }}
+   {{ policies }}
+            <form action="policyUpdate" method="post">
+              {%csrf_token%}
+                <!--<input class="button primary" type="submit" value="Get Policies">   -->
+            </form>
               
     {% endblock %}
 

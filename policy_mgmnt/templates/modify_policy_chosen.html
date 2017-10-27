@@ -17,16 +17,14 @@
       <div class="col-sm-6 ">
           <h3>Firewall Ticket Resolution Application</h3>
           <br>
-            <h3>Parse Policies</h3>
-        </br> 
             
-        <form action="submit" method="post">
-          {%csrf_token%}
-          <table>
-            {{ form.as_table }}
-          </table>     
-            <input class="button primary" type="submit" value="Get Policies">       
-        </form>
+            <form action="modify_policy_chosen" method="post">
+              {%csrf_token%}
+              <table>
+              {{ form.as_table }}
+              </table>
+                <input class="button primary" type="submit" value="Get Policies">   
+            </form>
               
     {% endblock %}
 
