@@ -20,12 +20,13 @@
           <h3>Modify Existing Juniper Policy</h3>
           <br> 
           
-            <form action="modify_policy_result" method="POST">
+            <form action="modify_policy" method="POST">
               {%csrf_token%}
               <table>
               {{ form.as_table }}
               </table>
                 <input class="button primary" type="submit" value="Get Policy">   
             </form>      
+            
     {% endblock %}
 </div>

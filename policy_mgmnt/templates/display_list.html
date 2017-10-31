@@ -1,0 +1,21 @@
+{% extends 'layout.html' %}
+
+<title>SRX Policy Dashboard</title>
+<div>
+    {% load static %}
+    <!-- Load the CSS template here -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" />
+    <!-- Add a header to the table -->
+    <div class="table-title">
+        <h3>SRX Policy Dashboard</h3>
+    </div>
+   {% block content %}
+   {% for firewall in firewalls %}
+   {{firewall.firewall_name}}
+   {% endfor %}
+   
+   {% endblock %}
+
+   
+    <!-- Create our first row, which will be a list of each data center location -->
+</div>

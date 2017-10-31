@@ -16,12 +16,38 @@
           <br>
             <h3>Juniper Policy To Modify</h3>
             <br>
-      {{ title }}
-   {{ policies }}
-            <form action="policyUpdate" method="post">
-              {%csrf_token%}
-                <!--<input class="button primary" type="submit" value="Get Policies">   -->
-            </form>
+      <h3>{{ title }}</h3>
+       
+    {% if policies %}        
+     {% for Policy in policies %}
+      <div>
+        <p>Policy: {{ Policy.Policy }}</p>
+        <p>Source: {{ Policy.Source }}</p>
+        <p>Dest: {{ Policy.Dest }}</p>
+        <p>App: {{ Policy.Port }}</p>
+      </div>
+     {% endfor %}
+
+    {% elif databaseEntry %} 
+
+      <p>Policy: {{databaseEntry.name}}</p>
+      <p>Source: {{databaseEntry.source_address}}}</p>
+      <p>Dest: {{databaseEntry.destination_address}}}</p>  
+      <p>App: {{databaseEntry.application}}}</p>
+
+    {% else %}
+    
+    <p> No valid policy selected </p>
+
+    {% endif %}
+        <form action="policyUpdate/" method="POST" novalidate>
+          {%csrf_token%}
+          <table>
+            {{ form.as_table }}
+          </table> 
+          <input class="button primary" type="submit" value="Modify Policy"> 
+        </form>
+       
               
     {% endblock %}
 

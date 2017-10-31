@@ -1,6 +1,9 @@
 from __future__ import unicode_literals
 import subprocess
 from django.views import generic
+from django.views.generic.detail import DetailView
+from django.views.generic.edit import FormView
+from django.utils import timezone
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
@@ -74,6 +77,8 @@ def modify_policy(request):
       # get creds from db
       querySet = Firewall.objects.all().filter(firewall_name=firewall)
 
+
+
       print [p.firewall_name for p in querySet]
     
       FWName = p.firewall_name
@@ -83,6 +88,7 @@ def modify_policy(request):
    
       # modify python code to take args and create new function
       if(connect_to_firewall(hostname, username, password)):
+        # python function get policy from  selected firewall
         policies = get_policy_info(form.cleaned_data["policy_info"])
         print 'Returned value from get_policy_info {}'.format(policies)
         policy_entry_check = Policies.policies.all()
@@ -90,11 +96,12 @@ def modify_policy(request):
         new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=policies[0].get('Source'), destination_address=policies[0].get('Dest'), application=policies[0].get('Port'), firewall=FWName)
         policy_check = policy_entry_check.filter(name=policies[0].get('Policy'))
   
-        if(policy_entry_check.filter(name=policies[0].get('Policy'))):
-          print "Policy already exists in database."
+        policy_entry_check.delete()
+        # if(policy_entry_check.filter(name=policies[0].get('Policy'))):
+          # print "Policy already exists in database."
           # policy_entry_check.delete()
-        else:
-          new_policy_entry.save(force_insert=True)
+        # else:
+        new_policy_entry.save(force_insert=True)
           # policy_entry_check.delete()
         
         context = { 
@@ -102,7 +109,7 @@ def modify_policy(request):
         'policies':policies,
         }
 
-        return render(request, "modify_policy_result.html", context)
+        return render(request, "policyUpdate.html", context)
 
       else:
         print "Policy not selected"
@@ -112,7 +119,7 @@ def modify_policy(request):
         'policies':"Policy not selected",
         }
 
-      return render(request, "modify_policy_result.html", context)
+      return render(request, "modify_policy.html", context)
 
   else:
     print " GET in def modify_policy(request):"
@@ -122,30 +129,22 @@ def modify_policy(request):
 
 @ensure_csrf_cookie
 def policyUpdate(request):
-  if request.method == 'POST':
-    policy_entry_check = Policies.policies.all()
-# TODI: FIX THIS FUNCTION
-    print "in modify_policy_result"
-    context = { 
-        'title':"firewall",
-        'policies':policy_entry_check.filter(name='15544')
-        }
-    return render(request, "policyUpdate.html", context)
-  else:
-    form = enterNewPolicyValues()
- 
-    return render(request, "policyUpdate.html", {'form':form})
-
-@ensure_csrf_cookie
-def modify_policy_chosen(request):
       
-  print "in modify_policy_chosen"
-        
-  form = enterNewPolicyValues()
  
-  return render(request, "modify_policy_chosen.html", {'form':form})
+  form = enterNewPolicyValues(request.GET or None)
+  policy_entry_check = Policies.policies.all()[:1].get()
+  
+   
+  context = { 
+        'title':policy_entry_check.firewall,
+        'databaseEntry':policy_entry_check,
+        'form': form
+        }
 
-class modify_policy_chosenView(generic.ListView):
+  return render(request, "policyUpdate.html", context)
+
+
+class ApplyChanges(generic.ListView):
       
 
   print "in modify_policy_chosenView"
@@ -154,12 +153,30 @@ class modify_policy_chosenView(generic.ListView):
 
   context_object_name = 'policy_list'   # your own name for the list as a template variable
   queryset = Policies.policies.all() # Get all policies
-  template_name = 'modify_policy_chosen.html'  # Specify your own template name/location
-
+  template_name = 'policyUpdate.html'  # Specify your own template name/location
+  
+  policy_entry_check = Policies.policies.all()[:1].get()
+    
+  context = { 
+        'title':policy_entry_check.firewall,
+        'databaseEntry':policy_entry_check
+        }
+  print policy_entry_check.firewall
   def get_context_data(self, **kwargs):
-    context = super(modify_policy_chosenView, self).get_context_data(**kwargs)
-    context['some_data'] = 'This is just some data'
+    context = super(ApplyChanges, self).get_context_data(**kwargs)
+    # context['some_data'] = 'This is just some data'
     return context
+
+# class display_policy(FormView):
+  # form_class = enterNewPolicyValues
+  # template_name = 'display_policy.html'
+  # model = Policies
+  # success_url = None
+
+  # def form_valid(self, form):
+        # form=enterNewPolicyValues
+        # policy = Policies.objects.all()[:1].get()
+        # return render(self.request, 'display_policy.html', {'policies': policy})
       
     
 
