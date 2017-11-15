@@ -17,6 +17,9 @@ urlpatterns = [
  ), name="policy"),
 #  url(r'^modify_policy_chosen/$', views.modify_policy_chosen),
  url(r'^policyUpdate/', views.policyUpdate),
+ 
+ url(r'^DisplayPolicyToUpdate', views.DisplayPolicyToUpdate),
+
  url(r'^display_list', ListView.as_view(
      model = Firewall,
     #  paginate_by = '4',

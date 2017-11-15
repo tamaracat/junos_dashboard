@@ -74,6 +74,7 @@ def home(request):
  
 @ensure_csrf_cookie
 def modify_policy(request):
+      
   if request.method == 'POST':
          
     form = ModifyPolicyForm(request.POST)
@@ -136,6 +137,7 @@ def modify_policy(request):
 @ensure_csrf_cookie
 def policyUpdate(request):
       
+  print 'in policyUpdate'
  
   form = enterNewPolicyValues(request.GET or None)
   policy_entry_check = Policies.policies.all()[:1].get()
@@ -148,6 +150,37 @@ def policyUpdate(request):
         }
 
   return render(request, "policyUpdate.html", context)
+
+@ensure_csrf_cookie
+def DisplayPolicyToUpdate(request):
+      
+  if request.method == 'POST':
+    print 'GET DisplayPolicyToUpdate'
+    form = enterNewPolicyValues(request.POST)
+    if form.is_valid():
+      surce =  form.cleaned_data["source_info"]
+      dest = form.cleaned_data["dest_info"]
+      app = form.cleaned_data["app_info"]
+        
+      # new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=','.join(policies[0].get('Source')), destination_address=','.join(policies[0].get('Dest')), application=','.join(policies[0].get('Port')), action=','.join(policies[0].get('Action')),firewall=FWName)
+      
+      policy_entry_check = Policies.policies.all()[:1].get()
+  
+   
+    context = { 
+          'title':policy_entry_check.firewall,
+          'databaseEntry':policy_entry_check,
+        }
+
+    return render(request, "DisplayPolicyToUpdate.html", context)
+
+  else:
+    print 'GET DisplayPolicyToUpdate'
+    context = { 
+          'title':"GET",
+        }
+    return render(request, "DisplayPolicyToUpdate.html", context)
+        
 '''
 
 class ApplyChanges(generic.ListView):

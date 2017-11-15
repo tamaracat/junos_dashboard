@@ -14,42 +14,11 @@
      
           <h3>Firewall Ticket Resolution Application</h3>
           <br>
-            <h3>Juniper Policy To Modify</h3>
+            <h3>Proposed Modification</h3>
             <br>
       <h3>{{ title }}</h3>
-       
-    {% if policies %}        
-    <table  class="table table-striped">
-    <thead>
-    <th scope="col">Policy</th>
-    <th scope="col">Source</th>
-    <th scope="col">Destination</th>
-    <th scope="col">Service</th> 
-    <th scope="col">Action</th> 
-    <th scope="col">Description</th>
-    </tr> 
-    </thead>
-    <tbody> 
-     {% for Policy in policies %}    
-      <tr>
-        <td> {{ Policy.Policy }}</td>
-        <td>{{ Policy.Source }}</td>
-        <td>{{ Policy.Dest }}</td>
-        <td>{{ Policy.Port }}</td>
-        <td>{{ Policy.Action }}</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
 
-      <form action="policyUpdate/" method="POST" novalidate>
-          {%csrf_token%}
-          <table>
-            {{ form.as_table }}
-          </table> 
-          <input class="button primary" type="submit" value="Modify Policy"> 
-        </form>
-
-    {% elif databaseEntry %} 
+    {% if databaseEntry %} 
 
     <table  class="table table-striped">
     <thead>
@@ -71,20 +40,25 @@
         </tbody>
       </table>
 
-       <form action="/DisplayPolicyToUpdate/" method="POST">
+       <form action="DisplayPolicyToUpdate" method="POST" novalidate>
           {%csrf_token%}
           <table>
             {{ form.as_table }}
           </table> 
-          <input class="button primary" type="submit" value="Submit Modification"> 
+          <input class="button primary" type="submit" value="Submit Changes"> 
         </form>
-
+        
     {% else %}
     
     <p> No valid policy selected </p>
 
+
     {% endif %}
-                  
+       
+       
+              
     {% endblock %}
 
+   
+    <!-- Create our first row, which will be a list of each data center location -->
 </div>
