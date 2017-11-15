@@ -48,6 +48,7 @@ class Policies(models.Model):
     source_address = models.CharField('Source_Address', max_length=10, default=1)
     destination_address = models.CharField('Destination_Address', max_length=10, default=1)
     application = models.CharField('Application', max_length=10, default=1)
+    action = models.CharField('Action', max_length=10, default=1)
     annotation = models.CharField('Annotation', max_length=10, blank=True, default=1)
     firewall =  models.CharField('Firewall Name', blank=True, max_length=50)
     policies = models.Manager()

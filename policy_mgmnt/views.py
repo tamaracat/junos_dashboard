@@ -100,7 +100,7 @@ def modify_policy(request):
         print 'Returned value from get_policy_info {}'.format(policies)
         policy_entry_check = Policies.policies.all()
         
-        new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=','.join(policies[0].get('Source')), destination_address=','.join(policies[0].get('Dest')), application=','.join(policies[0].get('Port')), firewall=FWName)
+        new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=','.join(policies[0].get('Source')), destination_address=','.join(policies[0].get('Dest')), application=','.join(policies[0].get('Port')), action=','.join(policies[0].get('Action')),firewall=FWName)
         policy_check = policy_entry_check.filter(name=policies[0].get('Policy'))
 
         # formatSrc =  ','.join(policies[0].get('Source'))
@@ -148,7 +148,7 @@ def policyUpdate(request):
         }
 
   return render(request, "policyUpdate.html", context)
-
+'''
 
 class ApplyChanges(generic.ListView):
       
@@ -172,7 +172,7 @@ class ApplyChanges(generic.ListView):
     context = super(ApplyChanges, self).get_context_data(**kwargs)
     # context['some_data'] = 'This is just some data'
     return context
-
+'''
 # class display_policy(FormView):
   # form_class = enterNewPolicyValues
   # template_name = 'display_policy.html'

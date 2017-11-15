@@ -24,7 +24,9 @@
     <th scope="col">Policy</th>
     <th scope="col">Source</th>
     <th scope="col">Destination</th>
-    <th scope="col">Application</th> 
+    <th scope="col">Service</th> 
+    <th scope="col">Action</th> 
+    <th scope="col">Description</th>
     </tr> 
     </thead>
     <tbody> 
@@ -33,7 +35,8 @@
         <td> {{ Policy.Policy }}</td>
         <td>{{ Policy.Source }}</td>
         <td>{{ Policy.Dest }}</td>
-        <td>{{ Policy.Port }}</td></tr>
+        <td>{{ Policy.Port }}</td>
+        <td>{{ Policy.Action }}</td></tr>
         {% endfor %}
         </tbody>
       </table>
@@ -46,7 +49,8 @@
     <th scope="col">Policy</th>
     <th scope="col">Source</th>
     <th scope="col">Destination</th>
-    <th scope="col">Application</th> 
+    <th scope="col">Service</th> 
+    <th scope="col">Action</th> 
     </tr> 
     </thead>
     <tbody> 
@@ -54,7 +58,8 @@
         <td> {{ databaseEntry.name }}</td>
         <td>{{ databaseEntry.source_address }}</td>
         <td>{{ databaseEntry.destination_address }}</td>
-        <td>{{ databaseEntry.application }}</td></tr> 
+        <td>{{ databaseEntry.application }}</td>
+        <td>{{ databaseEntry.action }}</td></tr> 
         </tbody>
       </table>
     {% else %}

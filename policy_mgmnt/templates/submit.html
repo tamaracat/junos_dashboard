@@ -20,21 +20,20 @@
     <th scope="col">Policy</th>
     <th scope="col">Source</th>
     <th scope="col">Destination</th>
-    <th scope="col">Application</th> 
+    <th scope="col">Service</th> 
+    <th scope="col">Action</th> 
+    <th scope="col">Description</th>
     </tr> 
     </thead>
     <tbody> 
      {% for Policy in policies %}    
       <tr>
      
-          <td> {{ Policy.Policy }}</td>
-     
+        <td> {{ Policy.Policy }}</td>
         <td>{{ Policy.Source }}</td>
-    
-   
         <td>{{ Policy.Dest }}</td>
-  
-        <td>{{ Policy.Port }}</td></tr>
+        <td>{{ Policy.Port }}</td>
+        <td>{{ Policy.Action }}</td></tr>
         {% endfor %}
         </tbody>
       </table>
