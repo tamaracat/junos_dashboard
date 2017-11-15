@@ -9,17 +9,41 @@
         <h3>SRX Policy Dashboard</h3>
     </div>
    {% block content %}
+   
    <h3>{{ title }}</h3>
-    {% if policies %}        
-     {% for Policy in policies %}
-      <div>
-        <p>Policy: {{ Policy.Policy }}</p>
-        <p>Source: {{ Policy.Source }}</p>
-        <p>Dest: {{ Policy.Dest }}</p>
-        <p>App: {{ Policy.Port }}</p>
-      </div>
-     {% endfor %}
+   
+    {% if policies %} 
+     
+    <table  class="table table-striped">
+    <thead>
+   
+    <th scope="col">Policy</th>
+    <th scope="col">Source</th>
+    <th scope="col">Destination</th>
+    <th scope="col">Application</th> 
+    </tr> 
+    </thead>
+    <tbody> 
+     {% for Policy in policies %}    
+      <tr>
+     
+          <td> {{ Policy.Policy }}</td>
+     
+        <td>{{ Policy.Source }}</td>
+    
+   
+        <td>{{ Policy.Dest }}</td>
+  
+        <td>{{ Policy.Port }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+     
     {% else %}
+
+    
+
+
 
     <p> There were not any matches for the data entered. </p>
 

@@ -1,0 +1,15 @@
+{% extends 'layout.html' %}
+
+    {% block title %}THE POLICY MGMNT PAGE{% endblock %}
+    
+
+    {% block title %}{{ section.title }}{% endblock %}
+
+    {% block content %}
+<h1>{{ section.title }}</h1>
+
+{% for policy in policy_list %}
+    <h2>{{ policy.name }}</h2>
+    <p>{{ policy.body }}</p>
+{% endfor %}
+{% endblock %}

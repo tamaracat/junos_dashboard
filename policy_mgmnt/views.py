@@ -37,14 +37,18 @@ def submit(request):
     if(connect_to_firewall(hostname, username, password)):
     # call function and pass parameters to log in to fw
 
-      if (form.cleaned_data["dest_info"] == 'any'):
+      if (form.cleaned_data["dest_info"] == 'all' and form.cleaned_data["app_info"] == 'all'):
         policies = get_host_access_info(form.cleaned_data["source_info"])
-        # newPolicies = get_policy_info(policies)
+        print policies
+      elif (form.cleaned_data["dest_info"] == 'all'):
+        policies = get_host_access_info_app(form.cleaned_data["source_info"], form.cleaned_data["app_info"])
         print policies
       else:
         policies = get_host_info(form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
-
         print policies
+
+        print ','.join(policies[0].get('Source'))
+        print ','.join(policies[0].get('Dest'))
 
       context = { 
         'title':FWName,
@@ -54,9 +58,13 @@ def submit(request):
       return render(request, "submit.html", context)
   
     else:
+      
       errorStr = "Could not establish a connection to "
       errorStr += FWName
-      return render(request, "submit.html", {"policies": errorStr}) 
+      context = { 
+        'title':errorStr
+      }
+      return render(request, "submit.html", context) 
 
 def home(request):
     
@@ -69,7 +77,6 @@ def modify_policy(request):
   if request.method == 'POST':
          
     form = ModifyPolicyForm(request.POST)
-    # form = enterNewPolicyValues(request.POST)
  
     if form.is_valid():
       print form.cleaned_data["Firewalls"]
@@ -93,16 +100,15 @@ def modify_policy(request):
         print 'Returned value from get_policy_info {}'.format(policies)
         policy_entry_check = Policies.policies.all()
         
-        new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=policies[0].get('Source'), destination_address=policies[0].get('Dest'), application=policies[0].get('Port'), firewall=FWName)
+        new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=','.join(policies[0].get('Source')), destination_address=','.join(policies[0].get('Dest')), application=','.join(policies[0].get('Port')), firewall=FWName)
         policy_check = policy_entry_check.filter(name=policies[0].get('Policy'))
-  
+
+        # formatSrc =  ','.join(policies[0].get('Source'))
+
         policy_entry_check.delete()
-        # if(policy_entry_check.filter(name=policies[0].get('Policy'))):
-          # print "Policy already exists in database."
-          # policy_entry_check.delete()
-        # else:
+      
         new_policy_entry.save(force_insert=True)
-          # policy_entry_check.delete()
+      
         
         context = { 
         'title':FWName,

@@ -1,0 +1,23 @@
+{% extends 'layout.html' %}
+<title>SRX Policy Dashboard</title>
+<div align="center">
+    {% load static %}
+    <!-- Load the CSS template here -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" />
+    <!-- Add a header to the table -->
+    <div class="table-title">
+        <h3>SRX Policy Dashboard</h3>
+    </div>
+   {% block content %}
+   <form action="your_view_url" method="post">{% csrf_token %}
+  {{ form.as_table }}
+  <!--<input type="text" name="info_name" value="info_value">-->
+    <input type="submit" value="Submit">
+    </form>
+    <p> Post Data: {{ info }} </p>
+    <p> Result: {{ output }} </p>
+    {% endblock %}
+
+    
+    <!-- Create our first row, which will be a list of each data center location -->
+</div>

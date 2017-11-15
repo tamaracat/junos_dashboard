@@ -19,22 +19,44 @@
       <h3>{{ title }}</h3>
        
     {% if policies %}        
-     {% for Policy in policies %}
-      <div>
-        <p>Policy: {{ Policy.Policy }}</p>
-        <p>Source: {{ Policy.Source }}</p>
-        <p>Dest: {{ Policy.Dest }}</p>
-        <p>App: {{ Policy.Port }}</p>
-      </div>
-     {% endfor %}
+    <table  class="table table-striped">
+    <thead>
+    <th scope="col">Policy</th>
+    <th scope="col">Source</th>
+    <th scope="col">Destination</th>
+    <th scope="col">Application</th> 
+    </tr> 
+    </thead>
+    <tbody> 
+     {% for Policy in policies %}    
+      <tr>
+        <td> {{ Policy.Policy }}</td>
+        <td>{{ Policy.Source }}</td>
+        <td>{{ Policy.Dest }}</td>
+        <td>{{ Policy.Port }}</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
 
     {% elif databaseEntry %} 
 
-      <p>Policy: {{databaseEntry.name}}</p>
-      <p>Source: {{databaseEntry.source_address}}}</p>
-      <p>Dest: {{databaseEntry.destination_address}}}</p>  
-      <p>App: {{databaseEntry.application}}}</p>
-
+    <table  class="table table-striped">
+    <thead>
+   
+    <th scope="col">Policy</th>
+    <th scope="col">Source</th>
+    <th scope="col">Destination</th>
+    <th scope="col">Application</th> 
+    </tr> 
+    </thead>
+    <tbody> 
+      <tr>
+        <td> {{ databaseEntry.name }}</td>
+        <td>{{ databaseEntry.source_address }}</td>
+        <td>{{ databaseEntry.destination_address }}</td>
+        <td>{{ databaseEntry.application }}</td></tr> 
+        </tbody>
+      </table>
     {% else %}
     
     <p> No valid policy selected </p>
