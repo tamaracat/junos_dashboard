@@ -137,7 +137,6 @@ def modify_policy(request):
 @ensure_csrf_cookie
 def policyUpdate(request):
       
-  print 'in policyUpdate'
  
   form = enterNewPolicyValues(request.GET or None)
   policy_entry_check = Policies.policies.all()[:1].get()
@@ -155,17 +154,26 @@ def policyUpdate(request):
 def DisplayPolicyToUpdate(request):
       
   if request.method == 'POST':
-    print 'GET DisplayPolicyToUpdate'
+        
+    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
+
     form = enterNewPolicyValues(request.POST)
     if form.is_valid():
-      surce =  form.cleaned_data["source_info"]
+      source =  form.cleaned_data["source_info"]
       dest = form.cleaned_data["dest_info"]
       app = form.cleaned_data["app_info"]
         
       # new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=','.join(policies[0].get('Source')), destination_address=','.join(policies[0].get('Dest')), application=','.join(policies[0].get('Port')), action=','.join(policies[0].get('Action')),firewall=FWName)
       
       policy_entry_check = Policies.policies.all()[:1].get()
-  
+
+      print policy_entry_check.name
+
+      # pol_dict['Policy'].append(str(policy_entry_check.name))
+      # pol_dict['Source'].append(policy_entry_check.object.source_address)
+      # pol_dict['Dest'].append(policy_entry_check.object.destination_address)
+      # pol_dict['Port'].append(policy_entry_check.object.application)
+      # pol_dict['Action'].append(policy_entry_check.object.action)
    
     context = { 
           'title':policy_entry_check.firewall,
