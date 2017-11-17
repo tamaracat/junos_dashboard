@@ -9,7 +9,7 @@ from django.http import HttpResponse
 from django.core.urlresolvers import reverse
 from models import Firewall, Policies, FirewallManager
 from django.views.decorators.csrf import ensure_csrf_cookie
-from scripts.xmlPython import *
+from scripts.pyEZJuniper import *
 from .forms import ContactForm, ModifyPolicyForm, enterNewPolicyValues
 from django.template import loader
 import json
@@ -34,21 +34,24 @@ def submit(request):
     password = p.firewall_pass
    
     # modify python code to take args and create new function
-    if(connect_to_firewall(hostname, username, password)):
+    dev = connect_to_firewall(hostname, username, password)
+    if(dev):
     # call function and pass parameters to log in to fw
 
       if (form.cleaned_data["dest_info"] == 'all' and form.cleaned_data["app_info"] == 'all'):
-        policies = get_host_access_info(form.cleaned_data["source_info"])
+        policies = get_host_access_info(dev, form.cleaned_data["source_info"])
         print policies
       elif (form.cleaned_data["dest_info"] == 'all'):
-        policies = get_host_access_info_app(form.cleaned_data["source_info"], form.cleaned_data["app_info"])
+        policies = get_host_access_info_app(dev,form.cleaned_data["source_info"], form.cleaned_data["app_info"])
         print policies
       else:
-        policies = get_host_info(form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
+        policies = get_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
         print policies
 
         print ','.join(policies[0].get('Source'))
         print ','.join(policies[0].get('Dest'))
+
+      dev.close()
 
       context = { 
         'title':FWName,
@@ -95,9 +98,10 @@ def modify_policy(request):
       password = p.firewall_pass
    
       # modify python code to take args and create new function
-      if(connect_to_firewall(hostname, username, password)):
+      dev = connect_to_firewall(hostname, username, password)
+      if(dev):
         # python function get policy from  selected firewall
-        policies = get_policy_info(form.cleaned_data["policy_info"])
+        policies = get_policy_info(dev, form.cleaned_data["policy_info"])
         print 'Returned value from get_policy_info {}'.format(policies)
         policy_entry_check = Policies.policies.all()
         
@@ -109,7 +113,8 @@ def modify_policy(request):
         policy_entry_check.delete()
       
         new_policy_entry.save(force_insert=True)
-      
+
+        dev.close()
         
         context = { 
         'title':FWName,
@@ -140,6 +145,7 @@ def policyUpdate(request):
  
   form = enterNewPolicyValues(request.GET or None)
   policy_entry_check = Policies.policies.all()[:1].get()
+  # policy_entry_check = Policies.policies.all().get()
   
    
   context = { 
@@ -166,6 +172,7 @@ def DisplayPolicyToUpdate(request):
       # new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=','.join(policies[0].get('Source')), destination_address=','.join(policies[0].get('Dest')), application=','.join(policies[0].get('Port')), action=','.join(policies[0].get('Action')),firewall=FWName)
       
       policy_entry_check = Policies.policies.all()[:1].get()
+      # policy_entry_check = Policies.policies.all().get()
 
       print policy_entry_check.name
 
@@ -214,16 +221,7 @@ class ApplyChanges(generic.ListView):
     # context['some_data'] = 'This is just some data'
     return context
 '''
-# class display_policy(FormView):
-  # form_class = enterNewPolicyValues
-  # template_name = 'display_policy.html'
-  # model = Policies
-  # success_url = None
 
-  # def form_valid(self, form):
-        # form=enterNewPolicyValues
-        # policy = Policies.objects.all()[:1].get()
-        # return render(self.request, 'display_policy.html', {'policies': policy})
       
     
 
