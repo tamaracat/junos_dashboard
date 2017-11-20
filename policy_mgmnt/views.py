@@ -7,11 +7,12 @@ from django.utils import timezone
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-from models import Firewall, Policies, FirewallManager
+from models import Firewall, Policies, FirewallManager, PolicyManager
 from django.views.decorators.csrf import ensure_csrf_cookie
 from scripts.pyEZJuniper import *
 from .forms import ContactForm, ModifyPolicyForm, enterNewPolicyValues
 from django.template import loader
+import re
 import json
 # import sys, ast
 
@@ -46,10 +47,11 @@ def submit(request):
         print policies
       else:
         policies = get_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
+        # get_zone_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
         print policies
 
-        print ','.join(policies[0].get('Source'))
-        print ','.join(policies[0].get('Dest'))
+        # print ','.join(policies[0].get('Source'))
+        # print ','.join(policies[0].get('Dest'))
 
       dev.close()
 
@@ -79,6 +81,16 @@ def home(request):
 def modify_policy(request):
       
   if request.method == 'POST':
+        
+    class MyDict(dict):
+      def __repr__(self):
+        s = "{"
+        for key in self:
+            s += "{0}:{1}, ".format(key, self[key])
+        if len(s) > 1:
+            s = s[0: -2]
+        s += "}"
+        return s
          
     form = ModifyPolicyForm(request.POST)
  
@@ -102,17 +114,44 @@ def modify_policy(request):
       if(dev):
         # python function get policy from  selected firewall
         policies = get_policy_info(dev, form.cleaned_data["policy_info"])
+                
         print 'Returned value from get_policy_info {}'.format(policies)
-        policy_entry_check = Policies.policies.all()
-        
-        new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=','.join(policies[0].get('Source')), destination_address=','.join(policies[0].get('Dest')), application=','.join(policies[0].get('Port')), action=','.join(policies[0].get('Action')),firewall=FWName)
-        policy_check = policy_entry_check.filter(name=policies[0].get('Policy'))
 
+        formatted_policy = MyDict(policies[0])
+       
+
+        print 'Formatted Policy {}'.format(formatted_policy)
+
+        # chars_to_remove = ['[', ']', "'"]
+        # new_src = str(formatted_policy.get('Source')).translate(None, ''.join(chars_to_remove))
+
+        print formatted_policy
+
+        # source=map(str.strip(str(policies[0].get('Source')))
+        source = re.sub(r'[^\w]', '',str(formatted_policy.get('Source')))
+        dest = re.sub(r'[^\w]', '',str(formatted_policy.get('Dest')))
+        port = re.sub(r'[^\w]', '',str(formatted_policy.get('Port')))
+        # print policies
+        
+        new_policy = Policies.objects.create_policy(name=policies[0].get('Policy'), source_address=source, destination_address=dest, application=port, action=policies[0].get('Action'),annotation='ttangney', firewall=FWName)
+        new_policy.save()
+
+        '''
+        print [p.name for p in new_policy]
+    
+        Name = p.objects.name
+        hostname = p.firewall_manageip
+        source = p.destination_address
+        app = p.application
+        act = p.action
+        firewall = p.objects.firewall
+        '''
+    
         # formatSrc =  ','.join(policies[0].get('Source'))
 
-        policy_entry_check.delete()
+        # new_policy.delete()
       
-        new_policy_entry.save(force_insert=True)
+        # p.objects.save(force_insert=True)
 
         dev.close()
         

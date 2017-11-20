@@ -42,6 +42,11 @@ class Firewall(models.Model):
     
     def __str__(self):
         return self.firewall_name
+
+class PolicyManager(models.Manager):
+    def create_policy(self, name, source_address, destination_address, application, action, annotation, firewall):
+      new_policy = self.create(name=name, source_address=source_address, destination_address=destination_address, application=application, action=action, annotation=annotation, firewall=firewall)
+      return new_policy
     
 class Policies(models.Model):
     name = models.CharField('Policy Name', max_length=10)
@@ -52,6 +57,7 @@ class Policies(models.Model):
     annotation = models.CharField('Annotation', max_length=10, blank=True, default=1)
     firewall =  models.CharField('Firewall Name', blank=True, max_length=50)
     policies = models.Manager()
+    objects = PolicyManager()
     # Metadata
     class Meta: 
         ordering = ["-name"]
