@@ -20,7 +20,7 @@
           <h3>Modify Existing Juniper Policy</h3>
           <br> 
           
-            <form action="modify_policy" method="POST">
+            <form action="policyUpdate/" method="POST">
               {%csrf_token%}
               <table>
               {{ form.as_table }}

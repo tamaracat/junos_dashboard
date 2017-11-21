@@ -19,24 +19,9 @@ urlpatterns = [
  url(r'^policyUpdate/', views.policyUpdate),
  
  url(r'^DisplayPolicyToUpdate', views.DisplayPolicyToUpdate),
-
- url(r'^display_list', ListView.as_view(
-     model = Firewall,
-    #  paginate_by = '4',
-     context_object_name = "firewalls",
-     queryset = Firewall.objects.all(),
-     template_name='display_list.html')),
-
-url(r'^', ListView.as_view(
-     model = Policies,
-    #  paginate_by = '4',
-     context_object_name = "policies",
-     queryset = Policies.policies.all(),
-     template_name='display_policy.html')),
-     
- url(r'^home', views.home)
 ]
 
+ 
 urlpatterns += [
     url(r'^$', RedirectView.as_view(url='/', permanent=True))
     
