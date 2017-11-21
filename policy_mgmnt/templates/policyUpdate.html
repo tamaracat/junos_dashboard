@@ -41,7 +41,7 @@
         </tbody>
       </table>
 
-      <form action="policyUpdate/" method="POST" novalidate>
+      <form action="/policyUpdate/" method="POST" novalidate>
           {%csrf_token%}
           <table>
             {{ form.as_table }}
@@ -71,7 +71,7 @@
         </tbody>
       </table>
 
-       <form action="/DisplayPolicyToUpdate/" method="POST">
+       <form action="/policyUpdate/" method="POST">
           {%csrf_token%}
           <table>
             {{ form.as_table }}

@@ -94,9 +94,10 @@ def home(request):
  
 @ensure_csrf_cookie
 def modify_policy(request):
-      
+
+
   if request.method == 'POST':
-         
+
     form = ModifyPolicyForm(request.POST)
  
     if form.is_valid():
@@ -117,18 +118,26 @@ def modify_policy(request):
       if(dev):
         # python function get policy from  selected firewall
         policies = get_policy_info(dev, form.cleaned_data["policy_info"])
+
+        print policies
                 
         print 'Returned value from get_policy_info {}'.format(policies)
       
-        source = re.sub(r'[^\w]', " ",str(policies.get('Source')))
-        dest = re.sub(r'[^\w]', " ",str(policies.get('Dest')))
-        port = re.sub(r'[^\w]', " ",str(policies.get('Port')))
-        
         policy_table_clear = Policies.objects.all()
         policy_table_clear.delete()
+
+        for item in policies:
+          policy = re.sub(r'[^\w]', " ",str(item.get('Policy')))
+          source = re.sub(r'[^\w]', " ",str(item.get('Source')))
+          print policy
+          dest = re.sub(r'[^\w]', " ",str(item.get('Dest')))
+          port = re.sub(r'[^\w]', " ",str(item.get('Port')))
+          action = re.sub(r'[^\w]', " ",str(item.get('Action')))
         
-        new_policy = Policies.objects.create_policy(name=policies[0].get('Policy'), source_address=str(source), destination_address=dest, application=port, action=policies[0].get('Action'),annotation='ttangney', firewall=FWName)
+        new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=dest, application=port, action=action,annotation='ttangney', firewall=FWName)
         new_policy.save()
+
+        # displayPolicy = Policies.objects.all()
 
         dev.close()
         
@@ -158,7 +167,7 @@ def modify_policy(request):
 @ensure_csrf_cookie
 def policyUpdate(request):
       
- 
+  print 'IN policyUpdate'
   form = enterNewPolicyValues(request.GET or None)
   policy_entry_check = Policies.policies.all().get()
   
@@ -176,7 +185,6 @@ def DisplayPolicyToUpdate(request):
       
   if request.method == 'POST':
         
-
     form = enterNewPolicyValues(request.POST)
     if form.is_valid():
       source =  form.cleaned_data["source_info"]
