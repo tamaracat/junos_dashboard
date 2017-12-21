@@ -10,7 +10,7 @@ from django.core.urlresolvers import reverse
 from models import Firewall, Policies, FirewallManager, PolicyManager
 from django.views.decorators.csrf import ensure_csrf_cookie
 from scripts.pyEZJuniper import *
-from .forms import ContactForm, ModifyPolicyForm, enterNewPolicyValues
+from .forms import ContactForm, ModifyPolicyForm, enterNewPolicyValues, FirewallFactsForm
 from django.template import loader
 import re
 import json
@@ -41,7 +41,7 @@ def submit(request):
 
       if (form.cleaned_data["dest_info"] == 'all' and form.cleaned_data["app_info"] == 'all'):
         policies = get_host_access_info(dev, form.cleaned_data["source_info"])
-        print policies
+       
       elif (form.cleaned_data["dest_info"] == 'all'):
         policies = get_host_access_info_app(dev,form.cleaned_data["source_info"], form.cleaned_data["app_info"])
         print policies
@@ -78,7 +78,7 @@ def submit(request):
       return render(request, "submit.html", context)
   
     else:
-      
+      print "Could not establish a connection to "
       errorStr = "Could not establish a connection to "
       errorStr += FWName
       context = { 
@@ -94,7 +94,6 @@ def home(request):
  
 @ensure_csrf_cookie
 def modify_policy(request):
-
 
   if request.method == 'POST':
 
@@ -166,8 +165,7 @@ def modify_policy(request):
 
 @ensure_csrf_cookie
 def policyUpdate(request):
-      
-  print 'IN policyUpdate'
+     
   form = enterNewPolicyValues(request.GET or None)
   policy_entry_check = Policies.policies.all().get()
   
@@ -182,11 +180,9 @@ def policyUpdate(request):
 
 @ensure_csrf_cookie
 def DisplayPolicyToUpdate(request):
-      
-  if request.method == 'POST':
         
-    form = enterNewPolicyValues(request.POST)
-    if form.is_valid():
+  form = enterNewPolicyValues(request.POST)
+  if form.is_valid():
       source =  form.cleaned_data["source_info"]
       dest = form.cleaned_data["dest_info"]
       app = form.cleaned_data["app_info"]
@@ -194,8 +190,6 @@ def DisplayPolicyToUpdate(request):
       # new_policy_entry = Policies(name=policies[0].get('Policy'), source_address=','.join(policies[0].get('Source')), destination_address=','.join(policies[0].get('Dest')), application=','.join(policies[0].get('Port')), action=','.join(policies[0].get('Action')),firewall=FWName)
       
       policy_entry_check = Policies.policies.all().get()
-
-  
    
       context = { 
           'title':policy_entry_check.firewall,
@@ -203,15 +197,56 @@ def DisplayPolicyToUpdate(request):
         }
 
       return render(request, "DisplayPolicyToUpdate.html", context)
+def get_facts(request):
+      
+  if request.method == 'GET':
+    form = FirewallFactsForm(request.GET or None)
+    return render(request, "get_facts.html", {'form':form})
 
-  else:
-    print 'GET DisplayPolicyToUpdate'
-    context = { 
-          'title':"GET",
-          'policies':"GET",
-        }
-    return render(request, "DisplayPolicyToUpdate.html", context)
+  elif request.method == 'POST':
         
+    form = FirewallFactsForm(request.POST)
+
+    if form.is_valid():
+      print form.cleaned_data["Firewalls"]
+      firewall = form.cleaned_data["Firewalls"]
+      # get creds from db
+      querySet = Firewall.objects.all().filter(firewall_name=firewall)
+
+      print [p.firewall_name for p in querySet]
+   
+      FWName = p.firewall_name
+      hostname = p.firewall_manageip
+      username = p.firewall_user
+      password = p.firewall_pass
+   
+      # modify python code to take args and create new function
+      dev = connect_to_firewall(hostname, username, password)
+      if(dev):
+        Facts = GetDeviceFacts(dev)
+
+        titleStr = "Facts for " + FWName
+        context = { 
+          'title': titleStr,
+          'facts':Facts,
+          'form': form
+          }
+        dev.close()  
+
+        return render(request, "submit.html", context)
+      else:
+        
+        errorStr = "Could not establish a connection to "
+        errorStr += FWName
+      
+        context = { 
+          'title': errorStr,
+          'form': form
+          } 
+
+        return render(request, "get_facts.html", context)
+          
+    
 
       
     

@@ -66,14 +66,49 @@
         {% endfor %}
         </tbody>
       </table>
-     
+        
+    {% endif %}
+
+    {% if facts %} 
+       <table  class="table table-striped">
+    
+    <tbody>    
+      <tr>
+        <th scope="row">Hostname</th>
+        <td> {{ facts.hostname }}</td>
+    </tr>
+     <tr>
+        <th scope="row">Model</th>
+        <td>{{ facts.model }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Junos Info</th>
+        <td>{{ facts.junos_info }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Serial Number</th>
+        <td>{{ facts.serialnumber }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Version</th>
+        <td>{{ facts.version }}</td>
+    </tr>
+    <tr>
+        <th scope="row">Info</th>
+        <td>{{ facts.re_info }}</td>
+    </tr>
+        </tbody>
+      </table>
     {% else %}
+             <form action="/" method="POST">
+          {%csrf_token%}
+          <table>
+            {{ form.as_table }}
+          </table>     
+            <input class="button primary" type="submit" value="Get Facts">   
+        </form>
 
     
-
-
-
-    <p> There were not any matches for the data entered. </p>
 
     {% endif %}
           

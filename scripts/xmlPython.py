@@ -44,10 +44,6 @@ fd.close()
 #  END of # Netmiko Device Login
 '''
 
-# hostname = '165.124.8.5'
-# password = 'c1b2bstsvsrx'
-
-# username = "tct1859"
 
 
 def connect_to_firewall(hostname, username, password):
@@ -60,7 +56,8 @@ def connect_to_firewall(hostname, username, password):
     client.set_missing_host_key_policy(paramiko.WarningPolicy)
     
     client.connect(hostname, port=port, username=username, password=password)
-
+    # stdin, stdout, stderr = client.exec_command('show security address-book global | display xml')
+  
     stdin, stdout, stderr = client.exec_command('show security policies global | display xml')
     output = stdout.read()
 
@@ -81,6 +78,8 @@ def connect_to_firewall(hostname, username, password):
       
   return connect
 
+
+
 def get_host_info(source, dest, port):
 
   xmldoc = etree.parse('junos-chassis.xml')
@@ -93,7 +92,7 @@ def get_host_info(source, dest, port):
     dest_match=False
     app_match=False
     i=i+1
-    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': []}
+    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
         
     for sourceAddr in ele.iter('{*}source-address'):
       
@@ -113,7 +112,9 @@ def get_host_info(source, dest, port):
           app_match = True
           pol_dict["Port"].append(app.find('{*}application-name').text)
         # print("Application: {}".format(app.find('{*}application-name').text))
-
+    
+    for action in ele.iter('{*}policy-action'):
+      pol_dict["Action"].append(action.find('{*}action-type').text)
         # print("Policy: {}".format(policy_to_match))  
       pol_dict['Policy'] = ele.find('{*}policy-name').text 
       # print("Policy: {}".format(ele.find('{*}policy-name').text))
@@ -130,7 +131,7 @@ def get_host_access_info(source):
   policies_list = []
   i=0
   for ele in docroot.iter('{*}policy-information'):
-    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': []}
+    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
     is_match=False
     for sourceAddr in ele.iter('{*}source-address'):
       is_match=False
@@ -142,6 +143,8 @@ def get_host_access_info(source):
       pol_dict['Dest'].append(destAddr.find('{*}address-name').text)
     for app in ele.iter('{*}application'):
       pol_dict["Port"].append(app.find('{*}application-name').text)
+    for action in ele.iter('{*}policy-action'):
+      pol_dict["Action"].append(action.find('{*}action-type').text)
     if is_match:    
       policies_list.append(pol_dict)
 
@@ -158,7 +161,7 @@ def get_policy_info(pol_name):
   
         
   for ele in docroot.iter('{*}policy-information'):
-    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': []}
+    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
     is_match=False
     # print "policy name passed in {}".format(pol_name)
     if(pol_name == ele.find('{*}policy-name').text):
@@ -170,6 +173,8 @@ def get_policy_info(pol_name):
         pol_dict['Dest'].append(destAddr.find('{*}address-name').text)
       for app in ele.iter('{*}application'):
         pol_dict["Port"].append(app.find('{*}application-name').text)
+      for action in ele.iter('{*}policy-action'):
+          pol_dict["Action"].append(action.find('{*}action-type').text)
       if is_match: 
         policies_list.append(pol_dict)
 

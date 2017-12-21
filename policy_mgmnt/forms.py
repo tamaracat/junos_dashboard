@@ -27,3 +27,6 @@ class enterNewPolicyValues(forms.Form):
     source_info = forms.CharField(label='Source Address', max_length=50)
     dest_info = forms.CharField(label='Destination Address', max_length=50)
     app_info = forms.CharField(label='Application', max_length=50)
+
+class FirewallFactsForm(forms.Form):  
+    Firewalls = forms.ModelChoiceField(empty_label="Select Firewall", queryset=Firewall.objects.all())
