@@ -43,33 +43,12 @@ policyContextView:
 ### SRX zone-to-zone security policy rules
 ### ---------------------------------------------------------------------------
 
-PolicyRuleTableOrig:
+PolicyRuleTable:
   get: security/policies/policy/policy 
   required_keys:
     policy:
       - from-zone-name
       - to-zone-name
-  view: policyRuleViewOrig
-
-policyRuleViewOrig:
-  groups:
-    match: match
-    then: then
-  fields_match:
-    match_src: source-address
-    match_dst: destination-address
-    match_app: application
-  fields_then:
-    log_init : { log/session-init: flag }
-    action : deny | permit 
-
-### ---------------------------------------------------------------------------
-### SRX zone-to-zone security policy rules
-### ---------------------------------------------------------------------------
-
-PolicyRuleTable:
-  get: security/policies/policy 
-  policy_name: '[afgx]e*' 
   view: policyRuleView
 
 policyRuleView:
@@ -83,7 +62,6 @@ policyRuleView:
   fields_then:
     log_init : { log/session-init: flag }
     action : deny | permit 
- 
 
 ### ---------------------------------------------------------------------------
 ### SRX global address set
@@ -176,21 +154,28 @@ def get_zone_host_info(a_device, source):
   
   allPolicies = PolicyContextTable(a_device).get()
   for item in allPolicies:
-    print item.from_zone
-    print item.to_zone
-  policies = PolicyRuleTableOrig(a_device).get(policy=['trust','Untrust'])
+    from_zone = item.from_zone
+    print from_zone
+    to_zone = item.to_zone
+    print to_zone
+    policies = PolicyRuleTable(a_device).get(policy=[from_zone,to_zone])
+    
   
-  print policies
-  policies_list = []
-  i=0
+    print policies
+    policies_list = []
+    i=0
        
-  for item in policies:
-    src_match=False
+    for item in policies:
+      src_match=False
     
-    i=i+1
-    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
+      i=i+1
+      pol_dict = {'From Zone': '', 'To Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
     
-    if(source == item.match_src ):
+      pol_dict['From Zone'] = from_zone
+      pol_dict['From Zone'] = to_zone
+
+      print('From Zone: {} To Zone: {}').format(from_zone, to_zone)
+      if(source == item.match_src ):
         src_match = True
         pol_dict['Source'].append(item.match_src)
         print("Source Address: {}".format(item.match_src))
@@ -207,8 +192,8 @@ def get_zone_host_info(a_device, source):
         pol_dict['Policy'] = item.name 
         # print("Policy: {}".format(item.name))
 
-    if(src_match):
-      policies_list.append(pol_dict)
+      if(src_match):
+        policies_list.append(pol_dict)
      
       
   return policies_list 
