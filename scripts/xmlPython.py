@@ -59,6 +59,7 @@ def connect_to_firewall(hostname, username, password):
     # stdin, stdout, stderr = client.exec_command('show security address-book global | display xml')
   
     stdin, stdout, stderr = client.exec_command('show security policies global | display xml')
+    # stdin, stdout, stderr = client.exec_command('show security policies | display xml')
     output = stdout.read()
 
     fd = open('junos-chassis.xml', 'w')

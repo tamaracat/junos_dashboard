@@ -49,9 +49,9 @@ PolicyRuleTableOrig:
     policy:
       - from-zone-name
       - to-zone-name
-  view: policyRuleView
+  view: policyRuleViewOrig
 
-policyRuleView:
+policyRuleViewOrig:
   groups:
     match: match
     then: then
@@ -68,8 +68,8 @@ policyRuleView:
 ### ---------------------------------------------------------------------------
 
 PolicyRuleTable:
-  get: security/policies/policy/policy 
-  policy_name: '[afgx]e*'
+  get: security/policies/policy 
+  policy_name: '[afgx]e*' 
   view: policyRuleView
 
 policyRuleView:
@@ -82,7 +82,8 @@ policyRuleView:
     match_app: application
   fields_then:
     log_init : { log/session-init: flag }
-    action : deny | permit  
+    action : deny | permit 
+ 
 
 ### ---------------------------------------------------------------------------
 ### SRX global address set
@@ -95,7 +96,6 @@ GlobalAddressBook:
 GlobalAddressView:
   fields:
     address: address
-
 
 ### ---------------------------------------------------------------------------
 ### SRX global policies match
@@ -172,55 +172,46 @@ table_options = {'inherit':'inherit', 'groups':'groups', 'database':'committed'}
 
 globals().update(FactoryLoader().load(yaml.load(myYAML)))
 
-def get_zone_host_info(a_device, source, dest, port):
-    
-  policies = PolicyRuleTable(a_device).get(options=table_options)
-
+def get_zone_host_info(a_device, source):
+  
+  allPolicies = PolicyContextTable(a_device).get()
+  for item in allPolicies:
+    print item.from_zone
+    print item.to_zone
+  policies = PolicyRuleTableOrig(a_device).get(policy=['trust','Untrust'])
+  
+  print policies
   policies_list = []
   i=0
-
-  for item in policies:
-    print (item.name)
-    print (item.match_src)
-    print (item.match_dst)
-    print (item.match_app)
-    print (item.action) 
-     
-
-    
+       
   for item in policies:
     src_match=False
-    dest_match=False
-    app_match=False
+    
     i=i+1
     pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
-        
+    
     if(source == item.match_src ):
         src_match = True
         pol_dict['Source'].append(item.match_src)
         print("Source Address: {}".format(item.match_src))
-    
-    if(dest == item.match_dst):
-        dest_match = True
+  
         pol_dict['Dest'].append(item.match_dst)
-        print("Destination Address: {}".format(item.match_dst))
+        # print("Destination Address: {}".format(item.match_dst))
     
-    if(port == item.match_app):
-        app_match = True
         pol_dict["Port"].append(item.match_app)
-        print("Service: {}".format(item.match_app))
+        # print("Service: {}".format(item.match_app))
 
         pol_dict['Action'] = item.action 
-        print("Action: {}".format(item.action))
+        # print("Action: {}".format(item.action))
     
         pol_dict['Policy'] = item.name 
-        print("Policy: {}".format(item.name))
+        # print("Policy: {}".format(item.name))
 
-    if(src_match & dest_match & app_match):
+    if(src_match):
       policies_list.append(pol_dict)
-      print i
+     
       
-  return policies_list    
+  return policies_list 
 
 def get_host_info(a_device, source, dest, port):
     
@@ -236,9 +227,7 @@ def get_host_info(a_device, source, dest, port):
     print (item.match_dst)
     print (item.match_app)
     print (item.action) 
-     
-
-    
+      
   for item in policies:
     src_match=False
     dest_match=False

@@ -40,8 +40,10 @@ def submit(request):
     # call function and pass parameters to log in to fw
 
       if (form.cleaned_data["dest_info"] == 'all' and form.cleaned_data["app_info"] == 'all'):
-        policies = get_host_access_info(dev, form.cleaned_data["source_info"])
-       
+        # policies = get_host_access_info(dev, form.cleaned_data["source_info"])
+        
+        policies = get_zone_host_info(dev, form.cleaned_data["source_info"])
+        
       elif (form.cleaned_data["dest_info"] == 'all'):
         policies = get_host_access_info_app(dev,form.cleaned_data["source_info"], form.cleaned_data["app_info"])
         print policies
@@ -50,33 +52,42 @@ def submit(request):
         # get_zone_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
 
    
-      dev.close()
+      dev.close()  
     
       policy_table_clear = Policies.objects.all()
       policy_table_clear.delete()
 
       for item in policies:
         policy = re.sub(r'[^\w]', " ",str(item.get('Policy')))
-        source = re.sub(r'[^\w]', " ",str(item.get('Source')))
+        source = str(item.get('Source'))
+        # source = re.sub(r'[^\w]', " ",str(item.get('Source')))
         print policy
-        dest = re.sub(r'[^\w]', " ",str(item.get('Dest')))
-        port = re.sub(r'[^\w]', " ",str(item.get('Port')))
+        dest = str(item.get('Dest'))
+        # dest = re.sub(r'[^\w]', " ",str(item.get('Dest')))
+        port = str(item.get('Port'))
+        # port = re.sub(r'[^\w]', " ",str(item.get('Port')))
         action = re.sub(r'[^\w]', " ",str(item.get('Action')))
         
           
-        new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=dest, application=port, action=action,annotation='ttangney', firewall=FWName)
+        new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action,annotation='ttangney', firewall=FWName)
         new_policy.save()
 
         displayPolicy = Policies.objects.all()
 
-        
-      context = { 
-        'title':FWName,
-        'databaseEntry':displayPolicy,
-        }
+      if policies:  
+        context = { 
+          'title':FWName,
+          'databaseEntry':displayPolicy,
+          }
 
-      return render(request, "submit.html", context)
-  
+        return render(request, "submit.html", context)
+      else:
+        context = { 
+          'title':"No Policies Present for Data Entered",
+          }
+
+        return render(request, "submit.html", context)
+            
     else:
       print "Could not establish a connection to "
       errorStr = "Could not establish a connection to "
