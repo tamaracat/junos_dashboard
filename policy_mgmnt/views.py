@@ -58,10 +58,11 @@ def submit(request):
       policy_table_clear.delete()
 
       for item in policies:
+        Src_Zone = str(item.get('Src_Zone'))
+        Dst_Zone = str(item.get('Dst_Zone'))
         policy = re.sub(r'[^\w]', " ",str(item.get('Policy')))
         source = str(item.get('Source'))
         # source = re.sub(r'[^\w]', " ",str(item.get('Source')))
-        print policy
         dest = str(item.get('Dest'))
         # dest = re.sub(r'[^\w]', " ",str(item.get('Dest')))
         port = str(item.get('Port'))
@@ -69,7 +70,7 @@ def submit(request):
         action = re.sub(r'[^\w]', " ",str(item.get('Action')))
         
           
-        new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action,annotation='ttangney', firewall=FWName)
+        new_policy = Policies.objects.create_policy(src_zone=Src_Zone, dst_zone=Dst_Zone,name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action,annotation='ttangney', firewall=FWName)
         new_policy.save()
 
         displayPolicy = Policies.objects.all()

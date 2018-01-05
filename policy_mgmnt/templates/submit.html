@@ -47,7 +47,8 @@
 
     <table  class="table table-striped">
     <thead>
-   
+    <th scope="col">Source Zone</th>
+    <th scope="col">Dest Zone</th>
     <th scope="col">Policy</th>
     <th scope="col">Source</th>
     <th scope="col">Destination</th>
@@ -58,6 +59,8 @@
     <tbody> 
         {% for policyrow in databaseEntry %} 
       <tr>
+        <td> {{ policyrow.src_zone }}</td>
+        <td> {{ policyrow.dst_zone }}</td>
         <td> {{ policyrow.name }}</td>
         <td>{{ policyrow.source_address }}</td>
         <td>{{ policyrow.destination_address }}</td>

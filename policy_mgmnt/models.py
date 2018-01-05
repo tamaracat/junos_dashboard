@@ -44,11 +44,13 @@ class Firewall(models.Model):
         return self.firewall_name
 
 class PolicyManager(models.Manager):
-    def create_policy(self, name, source_address, destination_address, application, action, annotation, firewall):
-      new_policy = self.create(name=name, source_address=source_address, destination_address=destination_address, application=application, action=action, annotation=annotation, firewall=firewall)
+    def create_policy(self, src_zone, dst_zone, name, source_address, destination_address, application, action, annotation, firewall):
+      new_policy = self.create(src_zone=src_zone, dst_zone=dst_zone, name=name, source_address=source_address, destination_address=destination_address, application=application, action=action, annotation=annotation, firewall=firewall)
       return new_policy
     
 class Policies(models.Model):
+    src_zone = models.CharField('Src_Zone', max_length=10, default=1)
+    dst_zone = models.CharField('Dst_Zone', max_length=10, default=1)
     name = models.CharField('Policy Name', max_length=10)
     source_address = models.CharField('Source_Address', max_length=10, default=1)
     destination_address = models.CharField('Destination_Address', max_length=10, default=1)

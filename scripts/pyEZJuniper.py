@@ -80,6 +80,22 @@ GlobalAddressView:
     address: ip-prefix
 
 ### ---------------------------------------------------------------------------
+### SRX global address set
+### ---------------------------------------------------------------------------
+
+AddressSetZone:
+  get: security/address-book
+  
+  view: AddressSetZoneView
+
+AddressSetZoneView:
+  
+  fields:
+    name: name
+    address_name: address/name
+    ip_prefix: address/ip-prefix
+
+### ---------------------------------------------------------------------------
 ### SRX global policies match
 ### ---------------------------------------------------------------------------
 
@@ -155,12 +171,17 @@ table_options = {'inherit':'inherit', 'groups':'groups', 'database':'committed'}
 globals().update(FactoryLoader().load(yaml.load(myYAML)))
 
 def get_zone_host_info(a_device, source):
+      
+  
+  Global_VS_Zone = AddressSetZone(a_device).get()
+
+  for item in Global_VS_Zone:
+    print ("Address Zone: {} Address Name: {} IP Prefix: {}").format(item.name, item.address_name, item.ip_prefix)
   
   IP_Address = GlobalAddressBook(a_device).get(address_name=source)
 
   for item in IP_Address:
-    print item.name
-    print item.address
+    print ("Name: {} IP Address: {}").format(item.name, item.address)
 
   policies_list = []
 
@@ -181,10 +202,10 @@ def get_zone_host_info(a_device, source):
       src_match=False
     
       i=i+1
-      pol_dict = {'From Zone': '', 'To Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
+      pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
     
-      pol_dict['From Zone'] = from_zone
-      pol_dict['From Zone'] = to_zone
+      pol_dict['Src_Zone'] = from_zone
+      pol_dict['Dst_Zone'] = to_zone
 
       print('From Zone: {} To Zone: {}').format(from_zone, to_zone)
       if(source == item.match_src ):
