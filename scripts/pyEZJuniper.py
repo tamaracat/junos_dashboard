@@ -68,12 +68,16 @@ policyRuleView:
 ### ---------------------------------------------------------------------------
 
 GlobalAddressBook:
-  get: security/address-book/global
-  interface_name: '[afgx]e*'
+  get: security/address-book/address
+  key-field:
+    address_name
   view: GlobalAddressView
+
 GlobalAddressView:
+  
   fields:
-    address: address
+    name: name
+    address: ip-prefix
 
 ### ---------------------------------------------------------------------------
 ### SRX global policies match
@@ -152,6 +156,14 @@ globals().update(FactoryLoader().load(yaml.load(myYAML)))
 
 def get_zone_host_info(a_device, source):
   
+  IP_Address = GlobalAddressBook(a_device).get(address_name=source)
+
+  for item in IP_Address:
+    print item.name
+    print item.address
+
+  policies_list = []
+
   allPolicies = PolicyContextTable(a_device).get()
   for item in allPolicies:
     from_zone = item.from_zone
@@ -162,7 +174,7 @@ def get_zone_host_info(a_device, source):
     
   
     print policies
-    policies_list = []
+    
     i=0
        
     for item in policies:
