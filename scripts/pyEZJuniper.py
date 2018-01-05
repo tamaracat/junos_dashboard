@@ -64,7 +64,7 @@ policyRuleView:
     action : deny | permit 
 
 ### ---------------------------------------------------------------------------
-### SRX global address set
+### SRX global address 
 ### ---------------------------------------------------------------------------
 
 GlobalAddressBook:
@@ -79,8 +79,25 @@ GlobalAddressView:
     name: name
     address: ip-prefix
 
+
 ### ---------------------------------------------------------------------------
 ### SRX global address set
+### ---------------------------------------------------------------------------
+
+GlobalAddressSet:
+  get: security/address-book/address-set
+  key-field:
+    address_name
+  view: GlobalAddressSetView
+
+GlobalAddressSetView:
+  
+  fields:
+    set_name: name
+    address: address/name
+
+### ---------------------------------------------------------------------------
+### SRX global address Zone
 ### ---------------------------------------------------------------------------
 
 AddressSetZone:
@@ -175,22 +192,33 @@ def get_zone_host_info(a_device, source):
   
   Global_VS_Zone = AddressSetZone(a_device).get()
 
-  for item in Global_VS_Zone:
-    print ("Address Zone: {} Address Name: {} IP Prefix: {}").format(item.name, item.address_name, item.ip_prefix)
+  # for item in Global_VS_Zone:
+    # print ("Address Zone: {} Address Name: {} IP Prefix: {}").format(item.name, item.address_name, item.ip_prefix)
   
+
   IP_Address = GlobalAddressBook(a_device).get(address_name=source)
 
   for item in IP_Address:
     print ("Name: {} IP Address: {}").format(item.name, item.address)
+    if (item.address == source):
+      print ("Name for "'10.23.1.0/24'" is defined as {}").format(item.name)
+      address_obj = item.name
+
+  AddressSet = GlobalAddressSet(a_device).get(address_name=address_obj)
+  for item in AddressSet:
+
+    if(address_obj in item.address):
+      print ('{} is in Address Set: {}').format(address_obj, item.set_name)
+      address_set = item.set_name
 
   policies_list = []
 
   allPolicies = PolicyContextTable(a_device).get()
   for item in allPolicies:
     from_zone = item.from_zone
-    print from_zone
+    # print from_zone
     to_zone = item.to_zone
-    print to_zone
+    # print to_zone
     policies = PolicyRuleTable(a_device).get(policy=[from_zone,to_zone])
     
   
@@ -208,10 +236,10 @@ def get_zone_host_info(a_device, source):
       pol_dict['Dst_Zone'] = to_zone
 
       print('From Zone: {} To Zone: {}').format(from_zone, to_zone)
-      if(source == item.match_src ):
+      if(address_set == item.match_src ):
         src_match = True
         pol_dict['Source'].append(item.match_src)
-        print("Source Address: {}".format(item.match_src))
+        # print("Source Address: {}".format(item.match_src))
   
         pol_dict['Dest'].append(item.match_dst)
         # print("Destination Address: {}".format(item.match_dst))
