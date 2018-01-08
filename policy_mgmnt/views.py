@@ -40,13 +40,15 @@ def submit(request):
     # call function and pass parameters to log in to fw
 
       if (form.cleaned_data["dest_info"] == 'all' and form.cleaned_data["app_info"] == 'all'):
-        # policies = get_host_access_info(dev, form.cleaned_data["source_info"])
-        
+        # global_policies = get_host_access_info(dev, 'CISCO-VOIP-PUBLIC.GLOBAL')
+        # print global_policies
         policies = get_zone_host_info(dev, form.cleaned_data["source_info"])
-        
+
+        # policies = policies + global_policies
+      
       elif (form.cleaned_data["dest_info"] == 'all'):
         policies = get_host_access_info_app(dev,form.cleaned_data["source_info"], form.cleaned_data["app_info"])
-        print policies
+        # print policies
       else:
         policies = get_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
         # get_zone_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
