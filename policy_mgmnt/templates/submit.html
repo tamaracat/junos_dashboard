@@ -43,7 +43,24 @@
           <input class="button primary" type="submit" value="Modify Policy"> 
         </form>
 
-    {% elif databaseEntry %} 
+    {% elif source_databaseEntry %} 
+
+    <table  class="table table-striped">
+    <thead>
+    <th scope="col">Source Host IP</th>
+    <th scope="col">Object</th>
+    <th scope="col">Address Set(s)</th>   
+    </tr> 
+    </thead>
+    <tbody> 
+        {% for policyrow in source_databaseEntry %} 
+      <tr>
+        <td> {{ policyrow.source_ip }}</td>
+        <td> {{ policyrow.defined_as }}</td>
+        <td> {{ policyrow.address_set }}</td>
+        {% endfor %}
+    </tbody>
+    </table>    
 
     <table  class="table table-striped">
     <thead>
@@ -57,7 +74,7 @@
     </tr> 
     </thead>
     <tbody> 
-        {% for policyrow in databaseEntry %} 
+        {% for policyrow in source_databaseEntry %} 
       <tr>
         <td> {{ policyrow.src_zone }}</td>
         <td> {{ policyrow.dst_zone }}</td>

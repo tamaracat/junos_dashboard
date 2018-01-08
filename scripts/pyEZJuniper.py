@@ -189,27 +189,36 @@ globals().update(FactoryLoader().load(yaml.load(myYAML)))
 
 def get_zone_host_info(a_device, source):
       
-  
-  Global_VS_Zone = AddressSetZone(a_device).get()
+  pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
+  pol_dict['Source_IP'] = source
+  # Global_VS_Zone = AddressSetZone(a_device).get()
+
+  global_policies = GlobalPoliciesMatch(a_device).get(options=table_options)  
 
   # for item in Global_VS_Zone:
     # print ("Address Zone: {} Address Name: {} IP Prefix: {}").format(item.name, item.address_name, item.ip_prefix)
   
-
   IP_Address = GlobalAddressBook(a_device).get(address_name=source)
+  
+  list_of_objects = []
 
   for item in IP_Address:
     print ("Name: {} IP Address: {}").format(item.name, item.address)
     if (item.address == source):
-      print ("Name for "'10.23.1.0/24'" is defined as {}").format(item.name)
+      print ("Name for source is defined as {}").format(item.name)
       address_obj = item.name
+      pol_dict['Defined_As'] = item.name
+      list_of_objects.append(address_obj)
 
-  AddressSet = GlobalAddressSet(a_device).get(address_name=address_obj)
-  for item in AddressSet:
+      AddressSet = GlobalAddressSet(a_device).get(address_name=address_obj)
 
-    if(address_obj in item.address):
-      print ('{} is in Address Set: {}').format(address_obj, item.set_name)
-      address_set = item.set_name
+      for item in AddressSet:
+
+        if(address_obj in item.address):
+          print ('{} is in Address Set: {}').format(address_obj, item.set_name)
+          address_set = item.set_name
+          pol_dict['Address_Set'].append(address_set)
+          list_of_objects.append(address_set)
 
   policies_list = []
 
@@ -220,43 +229,29 @@ def get_zone_host_info(a_device, source):
     to_zone = item.to_zone
     # print to_zone
     policies = PolicyRuleTable(a_device).get(policy=[from_zone,to_zone])
-    
-  
-    print policies
-    
-    i=0
-       
+          
     for item in policies:
       src_match=False
-    
-      i=i+1
-      pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
-    
-      pol_dict['Src_Zone'] = from_zone
-      pol_dict['Dst_Zone'] = to_zone
-
+       
       print('From Zone: {} To Zone: {}').format(from_zone, to_zone)
-      if(address_set == item.match_src ):
-        src_match = True
-        pol_dict['Source'].append(item.match_src)
-        # print("Source Address: {}".format(item.match_src))
-  
-        pol_dict['Dest'].append(item.match_dst)
-        # print("Destination Address: {}".format(item.match_dst))
-    
-        pol_dict["Port"].append(item.match_app)
-        # print("Service: {}".format(item.match_app))
-
-        pol_dict['Action'] = item.action 
-        # print("Action: {}".format(item.action))
-    
-        pol_dict['Policy'] = item.name 
-        # print("Policy: {}".format(item.name))
-
-      if(src_match):
-        policies_list.append(pol_dict)
-     
+      for addr_obj in list_of_objects:
+        
+        if(addr_obj == item.match_src ):
+          pol_dict['Src_Zone'] = from_zone
+          pol_dict['Dst_Zone'] = to_zone
+          print addr_obj
+          src_match = True
+          pol_dict['Source'].append(item.match_src)
+          pol_dict['Dest'].append(item.match_dst)
+          pol_dict["Port"].append(item.match_app)
+          pol_dict['Action'] = item.action 
+          pol_dict['Policy'] = item.name 
+   
+        if(src_match):
+          policies_list.append(pol_dict)
       
+        #  End of Zone Processing
+
   return policies_list 
 
 def get_host_info(a_device, source, dest, port):
@@ -319,7 +314,7 @@ def get_host_access_info(a_device, source):
   for item in policies:
     src_match=False
   
-    i=i+1
+
     pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
         
     if(source == item.match_src ):

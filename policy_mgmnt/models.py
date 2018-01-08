@@ -44,8 +44,8 @@ class Firewall(models.Model):
         return self.firewall_name
 
 class PolicyManager(models.Manager):
-    def create_policy(self, src_zone, dst_zone, name, source_address, destination_address, application, action, annotation, firewall):
-      new_policy = self.create(src_zone=src_zone, dst_zone=dst_zone, name=name, source_address=source_address, destination_address=destination_address, application=application, action=action, annotation=annotation, firewall=firewall)
+    def create_policy(self, src_zone, dst_zone, name, source_address, destination_address, application, action, source_ip, defined_as, address_set, annotation, firewall):
+      new_policy = self.create(src_zone=src_zone, dst_zone=dst_zone, name=name, source_address=source_address, destination_address=destination_address, application=application, action=action, source_ip=source_ip, defined_as=defined_as, address_set=address_set, annotation=annotation, firewall=firewall)
       return new_policy
     
 class Policies(models.Model):
@@ -56,6 +56,9 @@ class Policies(models.Model):
     destination_address = models.CharField('Destination_Address', max_length=10, default=1)
     application = models.CharField('Application', max_length=10, default=1)
     action = models.CharField('Action', max_length=10, default=1)
+    source_ip = models.CharField('Source_IP', max_length=10, default=1)
+    defined_as = models.CharField('Defined_As', max_length=10, default=1)
+    address_set = models.CharField('Address_Set', max_length=10, default=1)
     annotation = models.CharField('Annotation', max_length=10, blank=True, default=1)
     firewall =  models.CharField('Firewall Name', blank=True, max_length=50)
     policies = models.Manager()

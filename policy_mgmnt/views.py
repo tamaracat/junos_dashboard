@@ -66,11 +66,14 @@ def submit(request):
         dest = str(item.get('Dest'))
         # dest = re.sub(r'[^\w]', " ",str(item.get('Dest')))
         port = str(item.get('Port'))
+        source_ip = str(item.get('Source_IP'))
+        defined_as = str(item.get('Defined_As'))
+        address_set = str(item.get('Address_Set'))
         # port = re.sub(r'[^\w]', " ",str(item.get('Port')))
         action = re.sub(r'[^\w]', " ",str(item.get('Action')))
         
           
-        new_policy = Policies.objects.create_policy(src_zone=Src_Zone, dst_zone=Dst_Zone,name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action,annotation='ttangney', firewall=FWName)
+        new_policy = Policies.objects.create_policy(src_zone=Src_Zone, dst_zone=Dst_Zone,name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action, source_ip=source_ip, defined_as=defined_as, address_set=address_set, annotation='ttangney', firewall=FWName)
         new_policy.save()
 
         displayPolicy = Policies.objects.all()
@@ -78,7 +81,7 @@ def submit(request):
       if policies:  
         context = { 
           'title':FWName,
-          'databaseEntry':displayPolicy,
+          'source_databaseEntry':displayPolicy,
           }
 
         return render(request, "submit.html", context)
