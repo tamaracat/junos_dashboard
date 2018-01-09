@@ -81,11 +81,13 @@ def submit(request):
           new_policy.save()
 
           displayPolicy = Policies.objects.all()
+          displayObjectVars = Policies.objects.all()[:1]
 
       if policies:  
         context = { 
           'title':FWName,
           'source_databaseEntry':displayPolicy,
+          'displayObjectVars' :displayObjectVars,
           }
 
         return render(request, "submit.html", context)
