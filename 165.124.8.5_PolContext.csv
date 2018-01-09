@@ -1,0 +1,4 @@
+Src_Zone,Dst_Zone
+trust,Untrust
+traversal,Untrust
+dmz,Untrust
