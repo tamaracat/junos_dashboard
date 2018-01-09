@@ -188,6 +188,7 @@ table_options = {'inherit':'inherit', 'groups':'groups', 'database':'committed'}
 globals().update(FactoryLoader().load(yaml.load(myYAML)))
 
 def get_zone_host_info(a_device, source):
+      
   policies_list = []   
   pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
   pol_dict['Source_IP'] = source
@@ -239,11 +240,43 @@ def get_zone_host_info(a_device, source):
           pol_dict['Policy'] = item.name 
    
         if(src_match):
-          policies_list.append(pol_dict)
+          policies_list.append(pol_dict.copy())
+          print policies_list
 
-  global_policies = get_global_host_info(a_device, list_of_objects)
-  policies_list.append(global_policies)
-
+  policies = GlobalPoliciesMatch(a_device).get(options=table_options)
+  for addr_obj in list_of_objects:
+    for item in policies:
+      src_match=False     
+      if isinstance(item.match_src, str):
+        if (addr_obj == item.match_src):
+          src_match = True
+          pol_dict['Source'] = item.match_src
+          # print("Source Address: {}".format(item.match_src))
+          pol_dict['Src_Zone'] = 'global'
+          pol_dict['Dst_Zone'] = 'global'
+          pol_dict['Dest'] = item.match_dst
+          pol_dict["Port"] = item.match_app  
+          pol_dict['Action'] = item.action 
+          pol_dict['Policy'] = item.name 
+          # policies_list.append(pol_dict)
+      else:
+        for src in item.match_src:
+          # print src
+          if (addr_obj == src):
+            src_match = True
+            pol_dict['Source'] = item.match_src
+            # print("Source Address: {}".format(item.match_src))
+            pol_dict['Src_Zone'] = 'global'
+            pol_dict['Dst_Zone'] = 'global'
+            pol_dict['Dest'] = item.match_dst
+            pol_dict["Port"] = item.match_app
+            pol_dict['Action'] = item.action 
+            pol_dict['Policy'] = item.name 
+            # policies_list.append(pol_dict)
+        if(src_match):
+          policies_list.append(pol_dict.copy())
+          print policies_list
+  # print policies_list
   return policies_list 
 
 def get_host_info(a_device, source, dest, port):
@@ -282,13 +315,13 @@ def get_host_info(a_device, source, dest, port):
 
     if(src_match & dest_match & app_match):
       policies_list.append(pol_dict)
-      print i
+
 
   
   return policies_list    
 
 def get_host_access_info(a_device, source):
-  print ('In global function using source {}').format(source)
+
   policies = GlobalPoliciesMatch(a_device).get(options=table_options) 
 
   policies_list = []
@@ -333,10 +366,10 @@ def get_global_host_info(a_device, list_of_objects):
 
   policies = GlobalPoliciesMatch(a_device).get(options=table_options) 
 
-  policies_dict = {}
+  policies_list = []
   i=0
-  pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
-  # pol_dict['Source_IP'] = 'some ip'
+  pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
+ 
   
   for addr_obj in list_of_objects:
     for item in policies:
@@ -345,7 +378,7 @@ def get_global_host_info(a_device, list_of_objects):
         if (addr_obj == item.match_src):
           src_match = True
           pol_dict['Source'].append(item.match_src)
-          print("Source Address: {}".format(item.match_src))
+          # print("Source Address: {}".format(item.match_src))
           pol_dict['Src_Zone'] = 'global'
           pol_dict['Dst_Zone'] = 'global'
           pol_dict['Dest'].append(item.match_dst)
@@ -358,17 +391,17 @@ def get_global_host_info(a_device, list_of_objects):
           # print src
           if (addr_obj == src):
             src_match = True
-            pol_dict['Source'].append(item.match_src)
-            print("Source Address: {}".format(item.match_src))
+            pol_dict['Source']= item.match_src
+            # print("Source Address: {}".format(item.match_src))
             pol_dict['Src_Zone'] = 'global'
             pol_dict['Dst_Zone'] = 'global'
-            pol_dict['Dest'].append(item.match_dst)
-            pol_dict["Port"].append(item.match_app)
+            pol_dict['Dest'] = item.match_dst
+            pol_dict["Port"] = item.match_app
             pol_dict['Action'] = item.action 
             pol_dict['Policy'] = item.name 
-            policies_dict.update(pol_dict)
-         
-  return policies_dict 
+            policies_list.append(pol_dict)
+              
+  return policies_list 
 
 def get_policy_info(a_device, pol_name):
  

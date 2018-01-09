@@ -58,27 +58,29 @@ def submit(request):
     
       policy_table_clear = Policies.objects.all()
       policy_table_clear.delete()
-
+      # print policies
       for item in policies:
-        Src_Zone = str(item.get('Src_Zone'))
-        Dst_Zone = str(item.get('Dst_Zone'))
-        policy = re.sub(r'[^\w]', " ",str(item.get('Policy')))
-        source = str(item.get('Source'))
-        # source = re.sub(r'[^\w]', " ",str(item.get('Source')))
-        dest = str(item.get('Dest'))
-        # dest = re.sub(r'[^\w]', " ",str(item.get('Dest')))
-        port = str(item.get('Port'))
-        source_ip = str(item.get('Source_IP'))
-        defined_as = str(item.get('Defined_As'))
-        address_set = str(item.get('Address_Set'))
-        # port = re.sub(r'[^\w]', " ",str(item.get('Port')))
-        action = re.sub(r'[^\w]', " ",str(item.get('Action')))
+          Src_Zone = str(item.get('Src_Zone'))
+          print Src_Zone
+          Dst_Zone = str(item.get('Dst_Zone'))
+          policy = re.sub(r'[^\w]', " ",str(item.get('Policy')))
+          print policy
+          source = str(item.get('Source'))
+          # source = re.sub(r'[^\w]', " ",str(item.get('Source')))
+          dest = str(item.get('Dest'))
+          # dest = re.sub(r'[^\w]', " ",str(item.get('Dest')))
+          port = str(item.get('Port'))
+          source_ip = str(item.get('Source_IP'))
+          defined_as = str(item.get('Defined_As'))
+          address_set = str(item.get('Address_Set'))
+          # port = re.sub(r'[^\w]', " ",str(item.get('Port')))
+          action = re.sub(r'[^\w]', " ",str(item.get('Action')))
         
           
-        new_policy = Policies.objects.create_policy(src_zone=Src_Zone, dst_zone=Dst_Zone,name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action, source_ip=source_ip, defined_as=defined_as, address_set=address_set, annotation='ttangney', firewall=FWName)
-        new_policy.save()
+          new_policy = Policies.objects.create_policy(src_zone=Src_Zone, dst_zone=Dst_Zone,name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action, source_ip=source_ip, defined_as=defined_as, address_set=address_set, annotation='ttangney', firewall=FWName)
+          new_policy.save()
 
-        displayPolicy = Policies.objects.all()
+          displayPolicy = Policies.objects.all()
 
       if policies:  
         context = { 
