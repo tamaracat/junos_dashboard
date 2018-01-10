@@ -204,11 +204,8 @@ def get_host_to_all_info(hostname, a_device, source):
   address_vrs = GlobalAddressSet(path=junos_config_path)
 
   for item in zone_context:     
+    zone_policies_vrs = PolicyRuleTable(path=junos_config_path)
     zone_policies = PolicyRuleTable(a_device).get(policy=[item.from_zone,item.to_zone])
-    zone_policies.savexml(path='Zone_PoliciesConfig.xml', hostname=True)
-
-  zone_policies_path = 'Zone_PoliciesConfig_165.124.8.5.xml'
-  zone_policies_vrs = PolicyRuleTable(path=zone_policies_path)
    
   for item in IP_Address:
     # print ("Name: {} IP Address: {}").format(item.name, item.address)
@@ -227,28 +224,10 @@ def get_host_to_all_info(hostname, a_device, source):
           address_set = item.set_name
           pol_dict['Address_Set'].append(address_set)
           list_of_objects.append(address_set)
-
-  csv_file = hostname + '_PolContext.csv'
-  if (os.path.isfile(csv_file)):
-    print 'exists'
-  else:       
-    allPolicies = PolicyContextTable(a_device).get()
-    with open(csv_file, 'w') as csvfile:  
-      fieldnames = ['Src_Zone', 'Dst_Zone']   
-      writer = csv.DictWriter(csvfile,fieldnames=fieldnames)
-      writer.writeheader()  
-   
-      for item in allPolicies:
-        writer.writerow({'Src_Zone':  item.from_zone, 'Dst_Zone': item.to_zone})
-
-      csvfile.close()
-
-  with open(csv_file) as csvfile:
-      reader = csv.DictReader(csvfile)
-      for row in reader:
-        # print(row['Src_Zone'], row['Dst_Zone'])
-        # policies = PolicyRuleTable(a_device).get(policy=[row['Src_Zone'],row['Dst_Zone']])
-        policies = zone_policies_vrs.get(policy=[row['Src_Zone'],row['Dst_Zone']])
+  
+  for zone in zone_context:
+       
+        policies = PolicyRuleTable(a_device).get(policy=[zone.from_zone,zone.to_zone])
         
         for item in policies:
           src_match=False     
@@ -256,8 +235,8 @@ def get_host_to_all_info(hostname, a_device, source):
           for addr_obj in list_of_objects:
         
             if(addr_obj == item.match_src ):
-              pol_dict['Src_Zone'] = row['Src_Zone']
-              pol_dict['Dst_Zone'] = row['Dst_Zone']
+              pol_dict['Src_Zone'] = zone.from_zone
+              pol_dict['Dst_Zone'] = zone.to_zone
               src_match = True
               pol_dict['Source'] = item.match_src
               pol_dict['Dest'] = item.match_dst
@@ -306,182 +285,6 @@ def get_host_to_all_info(hostname, a_device, source):
   # print policies_list
   return policies_list 
 
-def get_host_info(hostname, a_device, source, dest, port):
-    
-  policies_list = []   
-  pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
-  pol_dict['Source_IP'] = source
-  # Global_VS_Zone = AddressSetZone(a_device).get()
-  global_policies = GlobalPoliciesMatch(a_device).get(options=table_options) 
-  # for item in Global_VS_Zone:
-    # print ("Address Zone: {} Address Name: {} IP Prefix: {}").format(item.name, item.address_name, item.ip_prefix)
-  list_of_objects = []
-  IP_Address = GlobalAddressBook(a_device).get(address_name=source)
-  for item in IP_Address:
-    # print ("Name: {} IP Address: {}").format(item.name, item.address)
-    if (item.address == source):
-      # print ("Name for source is defined as {}").format(item.name)
-      address_obj = item.name
-      pol_dict['Defined_As'] = item.name
-      list_of_objects.append(address_obj)
-
-      AddressSet = GlobalAddressSet(a_device).get(address_name=address_obj)
-
-      for item in AddressSet:
-        if(address_obj in item.address):
-          # print ('{} is in Address Set: {}').format(address_obj, item.set_name)
-          address_set = item.set_name
-          pol_dict['Address_Set'].append(address_set)
-          list_of_objects.append(address_set)
-
-  csv_file = hostname + '_PolContext.csv'
-  if (os.path.isfile(csv_file)):
-    print 'exists'
-  else:       
-    allPolicies = PolicyContextTable(a_device).get()
-    with open(csv_file, 'w') as csvfile:  
-      fieldnames = ['Src_Zone', 'Dst_Zone']   
-      writer = csv.DictWriter(csvfile,fieldnames=fieldnames)
-      writer.writeheader()  
-   
-    for item in allPolicies:
-      writer.writerow({'Src_Zone':  item.from_zone, 'Dst_Zone': item.to_zone})
-
-    csvfile.close()
-
-  with open(csv_file) as csvfile:
-      reader = csv.DictReader(csvfile)
-      for row in reader:
-        print(row['Src_Zone'], row['Dst_Zone'])
-        policies = PolicyRuleTable(a_device).get(policy=[row['Src_Zone'],row['Dst_Zone']])
-          
-      for item in policies:
-        src_match=False     
-      # print('From Zone: {} To Zone: {}').format(from_zone, to_zone)
-        for addr_obj in list_of_objects:
-        
-          if(addr_obj == item.match_src ):
-            pol_dict['Src_Zone'] = from_zone
-            pol_dict['Dst_Zone'] = to_zone
-            src_match = True
-            pol_dict['Source'] = item.match_src
-            pol_dict['Dest'] = item.match_dst
-            pol_dict["Port"] = item.match_app
-            pol_dict['Action'] = item.action 
-            pol_dict['Policy'] = item.name 
-   
-          if(src_match):
-            policies_list.append(pol_dict.copy())
-            # print policies_list
-
-  policies = GlobalPoliciesMatch(a_device).get(options=table_options)
-  for addr_obj in list_of_objects:
-    for item in policies:
-        src_match=False     
-        if isinstance(item.match_src, str):
-          if (addr_obj == item.match_src):
-            src_match = True
-            pol_dict['Source'] = item.match_src
-            pol_dict['Src_Zone'] = 'global'
-            pol_dict['Dst_Zone'] = 'global'
-            pol_dict['Dest'] = item.match_dst
-            pol_dict["Port"] = item.match_app  
-            pol_dict['Action'] = item.action 
-            pol_dict['Policy'] = item.name 
-            # policies_list.append(pol_dict)
-        else:
-          for src in item.match_src:
-            # print src
-            if (addr_obj == src):
-              src_match = True
-              pol_dict['Source'] = item.match_src
-              # print("Source Address: {}".format(item.match_src))
-              pol_dict['Src_Zone'] = 'global'
-              pol_dict['Dst_Zone'] = 'global'
-              pol_dict['Dest'] = item.match_dst
-              pol_dict["Port"] = item.match_app
-              pol_dict['Action'] = item.action 
-              pol_dict['Policy'] = item.name 
-              # policies_list.append(pol_dict)
-          if(src_match):
-            policies_list.append(pol_dict.copy())
-          # print policies_list
-  # print policies_list
-  return policies_list 
-
-def get_global_host_info(a_device, list_of_objects):
-
-  policies = GlobalPoliciesMatch(a_device).get(options=table_options) 
-
-  policies_list = []
-  i=0
-  pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
- 
-  
-  for addr_obj in list_of_objects:
-    for item in policies:
-      src_match=False     
-      if isinstance(item.match_src, str):
-        if (addr_obj == item.match_src):
-          src_match = True
-          pol_dict['Source'].append(item.match_src)
-          # print("Source Address: {}".format(item.match_src))
-          pol_dict['Src_Zone'] = 'global'
-          pol_dict['Dst_Zone'] = 'global'
-          pol_dict['Dest'].append(item.match_dst)
-          pol_dict["Port"].append(item.match_app)   
-          pol_dict['Action'] = item.action 
-          pol_dict['Policy'] = item.name 
-          policies_dict.update(pol_dict)
-      else:
-        for src in item.match_src:
-          # print src
-          if (addr_obj == src):
-            src_match = True
-            pol_dict['Source']= item.match_src
-            # print("Source Address: {}".format(item.match_src))
-            pol_dict['Src_Zone'] = 'global'
-            pol_dict['Dst_Zone'] = 'global'
-            pol_dict['Dest'] = item.match_dst
-            pol_dict["Port"] = item.match_app
-            pol_dict['Action'] = item.action 
-            pol_dict['Policy'] = item.name 
-            policies_list.append(pol_dict)
-              
-  return policies_list 
-
-def get_policy_info(a_device, pol_name):
- 
-  policies = GlobalPoliciesMatch(a_device).get() 
-  policies_list = []
-  i=0
-       
-  for item in policies:
-    print (item.name)
-    print (item.match_src)
-    print (item.match_dst)
-    print (item.match_app)
-    print (item.action) 
-    src_match=False
-  
-    i=i+1
-    pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
-        
-    if(pol_name == item.name ):
-        print pol_name
-        print item.name
-        src_match = True
-        pol_dict['Policy']=item.name 
-        pol_dict['Source'] = item.match_src    
-        pol_dict['Dest'].append(item.match_dst)    
-        pol_dict["Port"].append(item.match_app) 
-        pol_dict['Action'] = item.action 
-           
-    if(src_match):
-      policies_list.append(pol_dict)
-      print i
-      
-  return policies_list   
 
 def GetArpEntry():
 
@@ -548,8 +351,6 @@ def connect_to_firewall(hostname, username, password):
 
 # data = a_device.rpc.get_config(options={'database' : 'committed'})
 # print(etree.tostring(data, encoding='unicode'))
-
-  
 
     # Text format
 # data = a_device.rpc.get_config(options={'format':'text'})
