@@ -25,23 +25,19 @@ UserView:
 ### ---------------------------------------------------------------------------
 ### SRX zone-to-zone security policy
 ### ---------------------------------------------------------------------------
-
 PolicyContextTable:
   get: security/policies/policy
   key:
     - from-zone-name
     - to-zone-name  
   view: policyContextView
-
 policyContextView:
   fields:
     from_zone: from-zone-name
     to_zone: to-zone-name
-
 ### ---------------------------------------------------------------------------
 ### SRX zone-to-zone security policy rules
 ### ---------------------------------------------------------------------------
-
 PolicyRuleTable:
   get: security/policies/policy/policy 
   required_keys:
@@ -49,7 +45,6 @@ PolicyRuleTable:
       - from-zone-name
       - to-zone-name
   view: policyRuleView
-
 policyRuleView:
   groups:
     match: match
@@ -61,82 +56,76 @@ policyRuleView:
   fields_then:
     log_init : { log/session-init: flag }
     action : deny | permit 
-
 ### ---------------------------------------------------------------------------
 ### SRX global address 
 ### ---------------------------------------------------------------------------
-
 GlobalAddressBook:
   get: security/address-book/address
   view: GlobalAddressView
-
 GlobalAddressView:
   
   fields:
     name: name
     address: ip-prefix
-
 ### ---------------------------------------------------------------------------
 ### SRX global address SRX
 ### ---------------------------------------------------------------------------
-
 GlobalAddressBookSRX:
   get: security/address-book
   view: GlobalAddressViewSRX
-
 GlobalAddressViewSRX:  
   fields:
     address: address
 ### ---------------------------------------------------------------------------
 ### SRX zone address book item table
 ### ---------------------------------------------------------------------------
-
 Zone_itemTable:
   get: security/zones/security-zone/address-book/address
   required_keys:
     security_zone: name
   view: Zone_itemView
-
-
 Zone_itemView:
   fields:
     ip_prefix: ip-prefix
 ### ---------------------------------------------------------------------------
 ### SRX global address set
 ### ---------------------------------------------------------------------------
-
 GlobalAddressSet:
   get: security/address-book/address-set
   key-field:
     address_name
   view: GlobalAddressSetView
-
 GlobalAddressSetView:
   
   fields:
     set_name: name
     address: address/name
-
+### ---------------------------------------------------------------------------
+### SRX global address set
+### ---------------------------------------------------------------------------
+GlobalAddressSetAll:
+  get: security/address-book/address-set
+  view: GlobalAddressSetViewAll
+GlobalAddressSetViewAll:
+  fields:
+    set_name: name
+    address: address/name
 ### ---------------------------------------------------------------------------
 ### SRX global address Zone
 ### ---------------------------------------------------------------------------
-
 AddressSetZone:
   get: security/address-book
   
   view: AddressSetZoneView
-
 AddressSetZoneView:
   
   fields:
     name: name
     address_name: address/name
     ip_prefix: address/ip-prefix
-
 ### ---------------------------------------------------------------------------
 ### SRX global policies match
 ### ---------------------------------------------------------------------------
-
 GlobalPoliciesMatch:
   get: security/policies/global/policy
   policy_name: '[afgx]e*'
@@ -152,12 +141,9 @@ GlobalAddressViewMatch:
   fields_then:
     log_init : { log/session-init: flag }
     action : deny | permit  
-
-
 ### ---------------------------------------------------------------------------
 ### SRX Ethernet EthPortTable
 ### ---------------------------------------------------------------------------
-
 EthPortTable:
   rpc: get-interface-information
   args:
@@ -166,7 +152,6 @@ EthPortTable:
   args_key: interface_name
   item: physical-interface
   view: EthPortView
-
 EthPortView:
   groups:
     mac_stats: ethernet-mac-statistics
@@ -186,11 +171,9 @@ EthPortView:
   fields_flags:
     running: { ifdf-running: flag }
     present: { ifdf-present: flag }
-
 ### ---------------------------------------------------------------------------
 ### ARP Table
 ### ---------------------------------------------------------------------------
-
 ArpTable:
   rpc: get-arp-table-information
   item: arp-table-entry
@@ -202,14 +185,24 @@ ArpView:
     ip_address: ip-address
     interface_name: interface-name
     host: hostname
-
 """
 table_options = {'inherit':'inherit', 'groups':'groups', 'database':'committed'}
 
 globals().update(FactoryLoader().load(yaml.load(myYAML)))
 
 def get_host_to_all_info(hostname, a_device, source):
-      
+  data = a_device.rpc.get_config()
+  # print(etree.tostring(data, encoding='unicode'))
+
+  fd = open('junos-config.xml', 'w')
+    # fd.write(output.strip())
+  fd.write(etree.tostring(data, encoding='unicode'))
+    # print output
+  fd.close()
+  
+  xmldoc = etree.parse('junos-config.xml')
+  docroot = xmldoc.getroot()
+
   policies_list = []   
   pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
   pol_dict['Source_IP'] = source
@@ -217,23 +210,65 @@ def get_host_to_all_info(hostname, a_device, source):
   # for item in Global_VS_Zone:
     # print ("Address Zone: {} Address Name: {} IP Prefix: {}").format(item.name, item.address_name, item.ip_prefix)
   list_of_objects = []
-  IP_Address = GlobalAddressBook(a_device).get()
-  print IP_Address
+
+  # IP_Address = GlobalAddressBook(a_device).get()
+  # print IP_Address
+  # IP_Address.savexml(path='AddressConfig.xml', hostname=True, timestamp=True)
+  # IP_Address.savexml(path='AddressConfig.xml', hostname=True)
   
-  # AddressSet = GlobalAddressSet(a_device).get(address_name='sslvpn_itcs_netconnect.global')
-  # print AddressSet
+  # AddressSet = GlobalAddressSet(a_device).get()
+  # AddressSet.savexml(path='AddressSetConfig.xml', hostname=True)
+
+  # zone_context = PolicyContextTable(a_device).get()
+  # zone_context.savexml(path='ZoneContextConfig.xml', hostname=True)
+
+  # policies = GlobalPoliciesMatch(a_device).get(options=table_options)
+  # policies.savexml(path='PoliciesConfig.xml', hostname=True)
+  
+  
+
+
+  policies_path = 'PoliciesConfig_165.124.8.5.xml'
+  policies_vrs = GlobalPoliciesMatch(path=policies_path)
+  policies = policies_vrs.get() 
+
+  zone_context_path = 'ZoneContextConfig_165.124.8.5.xml'
+  zone_vrs = PolicyContextTable(path=zone_context_path)
+  zone_context = zone_vrs.get() 
+
+  global_address_path = 'AddressConfig_165.124.8.5.xml'
+  xcvrs = GlobalAddressBook(path=global_address_path)
+  IP_Address = xcvrs.get() 
+
+  addr_set_path = 'AddressSetConfig_165.124.8.5.xml'
+  address_vrs = GlobalAddressSet(path=addr_set_path)
+
+  for item in zone_context:     
+    zone_policies = PolicyRuleTable(a_device).get(policy=[item.from_zone,item.to_zone])
+    zone_policies.savexml(path='Zone_PoliciesConfig.xml', hostname=True)
+
+
+  zone_policies_path = 'Zone_PoliciesConfig_165.124.8.5.xml'
+  zone_policies_vrs = PolicyRuleTable(path=zone_policies_path)
+   
+
   for item in IP_Address:
-    print ("Name: {} IP Address: {}").format(item.name, item.address)
+    # print ("Name: {} IP Address: {}").format(item.name, item.address)
     if (item.address == source):
-      print ("Name for source is defined as {}").format(item.name)
+      # print ("Name for source is defined as {}").format(item.name)
       address_obj = item.name
       pol_dict['Defined_As'] = item.name
       list_of_objects.append(address_obj)
 
-      AddressSet = GlobalAddressSet(a_device).get(address_name=address_obj)
-      print AddressSet
+      # AddressSet = GlobalAddressSet(a_device).get()
+      # print AddressSet
+      address_vrs = GlobalAddressSet(path=addr_set_path)
+      AddressSet = address_vrs.get()
+      # print AddressSet.keys()
 
       for item in AddressSet:
+        # print item.address
+        # print address_obj
         if(address_obj in item.address):
           print ('{} is in Address Set: {}').format(address_obj, item.set_name)
           address_set = item.set_name
@@ -259,12 +294,12 @@ def get_host_to_all_info(hostname, a_device, source):
       reader = csv.DictReader(csvfile)
       for row in reader:
         # print(row['Src_Zone'], row['Dst_Zone'])
-        policies = PolicyRuleTable(a_device).get(policy=[row['Src_Zone'],row['Dst_Zone']])
-    
-
+        # policies = PolicyRuleTable(a_device).get(policy=[row['Src_Zone'],row['Dst_Zone']])
+        policies = zone_policies_vrs.get(policy=[row['Src_Zone'],row['Dst_Zone']])
+        
         for item in policies:
           src_match=False     
-        # print('From Zone: {} To Zone: {}').format(from_zone, to_zone)
+          # print('From Zone: {} To Zone: {}').format(from_zone, to_zone)
           for addr_obj in list_of_objects:
         
             if(addr_obj == item.match_src ):
@@ -279,10 +314,11 @@ def get_host_to_all_info(hostname, a_device, source):
    
             if(src_match):
               policies_list.append(pol_dict.copy())
-              # print policies_list
+              print policies_list
   # 
-  policies = GlobalPoliciesMatch(a_device).get(options=table_options)
-  print policies
+  policies = policies_vrs.get(options=table_options)
+  # policies = GlobalPoliciesMatch(a_device).get(options=table_options)
+  # print policies
   for addr_obj in list_of_objects:
     for item in policies:
         src_match=False     
@@ -299,7 +335,7 @@ def get_host_to_all_info(hostname, a_device, source):
             # policies_list.append(pol_dict)
         else:
           for src in item.match_src:
-            print src
+            # print src
             if (addr_obj == src):
               src_match = True
               pol_dict['Source'] = item.match_src
@@ -594,4 +630,3 @@ def connect_to_firewall(hostname, username, password):
 
 # if __name__ == "__main__":
  # main()
-
