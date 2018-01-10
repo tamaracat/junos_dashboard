@@ -22,6 +22,7 @@ UserView:
   fields:
     username: name
     userclass: class
+
 ### ---------------------------------------------------------------------------
 ### SRX zone-to-zone security policy
 ### ---------------------------------------------------------------------------
@@ -67,26 +68,7 @@ GlobalAddressView:
   fields:
     name: name
     address: ip-prefix
-### ---------------------------------------------------------------------------
-### SRX global address SRX
-### ---------------------------------------------------------------------------
-GlobalAddressBookSRX:
-  get: security/address-book
-  view: GlobalAddressViewSRX
-GlobalAddressViewSRX:  
-  fields:
-    address: address
-### ---------------------------------------------------------------------------
-### SRX zone address book item table
-### ---------------------------------------------------------------------------
-Zone_itemTable:
-  get: security/zones/security-zone/address-book/address
-  required_keys:
-    security_zone: name
-  view: Zone_itemView
-Zone_itemView:
-  fields:
-    ip_prefix: ip-prefix
+
 ### ---------------------------------------------------------------------------
 ### SRX global address set
 ### ---------------------------------------------------------------------------
@@ -100,16 +82,7 @@ GlobalAddressSetView:
   fields:
     set_name: name
     address: address/name
-### ---------------------------------------------------------------------------
-### SRX global address set
-### ---------------------------------------------------------------------------
-GlobalAddressSetAll:
-  get: security/address-book/address-set
-  view: GlobalAddressSetViewAll
-GlobalAddressSetViewAll:
-  fields:
-    set_name: name
-    address: address/name
+
 ### ---------------------------------------------------------------------------
 ### SRX global address Zone
 ### ---------------------------------------------------------------------------
@@ -190,68 +163,53 @@ table_options = {'inherit':'inherit', 'groups':'groups', 'database':'committed'}
 
 globals().update(FactoryLoader().load(yaml.load(myYAML)))
 
-def get_host_to_all_info(hostname, a_device, source):
-  data = a_device.rpc.get_config()
-  # print(etree.tostring(data, encoding='unicode'))
-
+def get_device_configuration(hostname, a_device):
+      
+  data = a_device.rpc.get_config()   
   fd = open('junos-config.xml', 'w')
-    # fd.write(output.strip())
   fd.write(etree.tostring(data, encoding='unicode'))
-    # print output
   fd.close()
   
   xmldoc = etree.parse('junos-config.xml')
-  docroot = xmldoc.getroot()
+  docroot = xmldoc.getroot()  
 
+  
+  # IP_Address.savexml(path='AddressConfig.xml', hostname=True, timestamp=True)
+
+  # AddressSet.savexml(path='AddressSetConfig.xml', hostname=True)
+  # zone_context = PolicyContextTable(a_device).get()
+  # zone_context.savexml(path='ZoneContextConfig.xml', hostname=True)
+  # policies = GlobalPoliciesMatch(a_device).get(options=table_options)
+  # policies.savexml(path='PoliciesConfig.xml', hostname=True)   
+
+def get_host_to_all_info(hostname, a_device, source):
+  
   policies_list = []   
   pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
   pol_dict['Source_IP'] = source
-  # Global_VS_Zone = AddressSetZone(a_device).get()
-  # for item in Global_VS_Zone:
-    # print ("Address Zone: {} Address Name: {} IP Prefix: {}").format(item.name, item.address_name, item.ip_prefix)
+  
   list_of_objects = []
 
-  # IP_Address = GlobalAddressBook(a_device).get()
-  # print IP_Address
-  # IP_Address.savexml(path='AddressConfig.xml', hostname=True, timestamp=True)
-  # IP_Address.savexml(path='AddressConfig.xml', hostname=True)
-  
-  # AddressSet = GlobalAddressSet(a_device).get()
-  # AddressSet.savexml(path='AddressSetConfig.xml', hostname=True)
+  junos_config_path='junos-config.xml'
 
-  # zone_context = PolicyContextTable(a_device).get()
-  # zone_context.savexml(path='ZoneContextConfig.xml', hostname=True)
-
-  # policies = GlobalPoliciesMatch(a_device).get(options=table_options)
-  # policies.savexml(path='PoliciesConfig.xml', hostname=True)
-  
-  
-
-
-  policies_path = 'PoliciesConfig_165.124.8.5.xml'
-  policies_vrs = GlobalPoliciesMatch(path=policies_path)
+  policies_vrs = GlobalPoliciesMatch(path=junos_config_path)
   policies = policies_vrs.get() 
 
-  zone_context_path = 'ZoneContextConfig_165.124.8.5.xml'
-  zone_vrs = PolicyContextTable(path=zone_context_path)
+  zone_vrs = PolicyContextTable(path=junos_config_path)
   zone_context = zone_vrs.get() 
 
-  global_address_path = 'AddressConfig_165.124.8.5.xml'
-  xcvrs = GlobalAddressBook(path=global_address_path)
+  xcvrs = GlobalAddressBook(path=junos_config_path)
   IP_Address = xcvrs.get() 
 
-  addr_set_path = 'AddressSetConfig_165.124.8.5.xml'
-  address_vrs = GlobalAddressSet(path=addr_set_path)
+  address_vrs = GlobalAddressSet(path=junos_config_path)
 
   for item in zone_context:     
     zone_policies = PolicyRuleTable(a_device).get(policy=[item.from_zone,item.to_zone])
     zone_policies.savexml(path='Zone_PoliciesConfig.xml', hostname=True)
 
-
   zone_policies_path = 'Zone_PoliciesConfig_165.124.8.5.xml'
   zone_policies_vrs = PolicyRuleTable(path=zone_policies_path)
    
-
   for item in IP_Address:
     # print ("Name: {} IP Address: {}").format(item.name, item.address)
     if (item.address == source):
@@ -260,15 +218,10 @@ def get_host_to_all_info(hostname, a_device, source):
       pol_dict['Defined_As'] = item.name
       list_of_objects.append(address_obj)
 
-      # AddressSet = GlobalAddressSet(a_device).get()
-      # print AddressSet
-      address_vrs = GlobalAddressSet(path=addr_set_path)
+      address_vrs = GlobalAddressSet(path=junos_config_path)
       AddressSet = address_vrs.get()
-      # print AddressSet.keys()
 
       for item in AddressSet:
-        # print item.address
-        # print address_obj
         if(address_obj in item.address):
           print ('{} is in Address Set: {}').format(address_obj, item.set_name)
           address_set = item.set_name
