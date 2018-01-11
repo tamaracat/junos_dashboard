@@ -84,18 +84,30 @@ GlobalAddressSetView:
     address: address/name
 
 ### ---------------------------------------------------------------------------
-### SRX global address Zone
+### SRX zone-to-zone security policy
 ### ---------------------------------------------------------------------------
-AddressSetZone:
-  get: security/address-book
-  
-  view: AddressSetZoneView
-AddressSetZoneView:
-  
-  fields:
-    name: name
-    address_name: address/name
-    ip_prefix: address/ip-prefix
+SecurityPolicyTable:
+  rpc: get-firewall-policies
+  key:
+    - from-zone-name
+    - to-zone-name  
+  view: SecurityPolicyContextView
+SecurityPolicyContextView:
+  groups:
+    security_context: security-context
+    match: match
+    then: then
+  fields_security_context:
+    source_zone_name: source-zone-name
+    to_zone_name: to-zone-name
+  fields_match:
+    match_src: source-address
+    match_dst: destination-address
+    match_app: application
+  fields_then:
+    log_init : { log/session-init: flag }
+    action : deny | permit 
+
 ### ---------------------------------------------------------------------------
 ### SRX global policies match
 ### ---------------------------------------------------------------------------
@@ -164,33 +176,28 @@ table_options = {'inherit':'inherit', 'groups':'groups', 'database':'committed'}
 globals().update(FactoryLoader().load(yaml.load(myYAML)))
 
 def get_device_configuration(hostname, a_device):
-      
-  data = a_device.rpc.get_config()   
-  fd = open('junos-config.xml', 'w')
+
+  conf_file = 'junos-config_' + hostname + '.xml'
+
+  data = a_device.rpc.get_config(options={'database':'committed'})   
+  fd = open(conf_file, 'w')
   fd.write(etree.tostring(data, encoding='unicode'))
   fd.close()
-  
-  xmldoc = etree.parse('junos-config.xml')
-  docroot = xmldoc.getroot()  
 
-  
-  # IP_Address.savexml(path='AddressConfig.xml', hostname=True, timestamp=True)
 
-  # AddressSet.savexml(path='AddressSetConfig.xml', hostname=True)
-  # zone_context = PolicyContextTable(a_device).get()
-  # zone_context.savexml(path='ZoneContextConfig.xml', hostname=True)
-  # policies = GlobalPoliciesMatch(a_device).get(options=table_options)
-  # policies.savexml(path='PoliciesConfig.xml', hostname=True)   
+def get_host_to_all_info(hostname, source):
 
-def get_host_to_all_info(hostname, a_device, source):
-  
+  # dev.open()
+  # data = dev.rpc.get_config(filter_xml=etree.XML('<configuration><security><policies></policies></security></configuration>')) 
+  # open('abc.xml','w').write(etree.tostring(data))
+
   policies_list = []   
-  pol_dict = {'Src_Zone': '', 'Dst_Zone': '', 'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
+  pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
   pol_dict['Source_IP'] = source
   
   list_of_objects = []
 
-  junos_config_path='junos-config.xml'
+  junos_config_path = 'junos-config_' + hostname + '.xml'
 
   policies_vrs = GlobalPoliciesMatch(path=junos_config_path)
   policies = policies_vrs.get() 
@@ -202,15 +209,11 @@ def get_host_to_all_info(hostname, a_device, source):
   IP_Address = xcvrs.get() 
 
   address_vrs = GlobalAddressSet(path=junos_config_path)
-
-  for item in zone_context:     
-    zone_policies_vrs = PolicyRuleTable(path=junos_config_path)
-    zone_policies = PolicyRuleTable(a_device).get(policy=[item.from_zone,item.to_zone])
    
   for item in IP_Address:
-    # print ("Name: {} IP Address: {}").format(item.name, item.address)
+    
     if (item.address == source):
-      # print ("Name for source is defined as {}").format(item.name)
+      
       address_obj = item.name
       pol_dict['Defined_As'] = item.name
       list_of_objects.append(address_obj)
@@ -224,20 +227,25 @@ def get_host_to_all_info(hostname, a_device, source):
           address_set = item.set_name
           pol_dict['Address_Set'].append(address_set)
           list_of_objects.append(address_set)
+
   
+  
+  '''
   for zone in zone_context:
-       
-        policies = PolicyRuleTable(a_device).get(policy=[zone.from_zone,zone.to_zone])
-        
-        for item in policies:
-          src_match=False     
-          # print('From Zone: {} To Zone: {}').format(from_zone, to_zone)
-          for addr_obj in list_of_objects:
-        
+        # Connects to firewall
+      # path_file = 'PolicyRuleTable_' + zone.from_zone + zone.to_zone + '.xml'
+      policies = PolicyRuleTable(path=junos_config_path).get(policy=[zone.from_zone,zone.to_zone], options=table_options)
+      print rules
+      # policies.savexml(path=path_file,hostname=True)
+      print policies 
+      for addr_obj in list_of_objects:   
+          for item in policies:
+            
+            src_match=False  
             if(addr_obj == item.match_src ):
+              src_match = True
               pol_dict['Src_Zone'] = zone.from_zone
               pol_dict['Dst_Zone'] = zone.to_zone
-              src_match = True
               pol_dict['Source'] = item.match_src
               pol_dict['Dest'] = item.match_dst
               pol_dict["Port"] = item.match_app
@@ -246,11 +254,9 @@ def get_host_to_all_info(hostname, a_device, source):
    
             if(src_match):
               policies_list.append(pol_dict.copy())
-              print policies_list
-  # 
+  '''           
   policies = policies_vrs.get(options=table_options)
-  # policies = GlobalPoliciesMatch(a_device).get(options=table_options)
-  # print policies
+  
   for addr_obj in list_of_objects:
     for item in policies:
         src_match=False     
@@ -264,25 +270,20 @@ def get_host_to_all_info(hostname, a_device, source):
             pol_dict["Port"] = item.match_app  
             pol_dict['Action'] = item.action 
             pol_dict['Policy'] = item.name 
-            # policies_list.append(pol_dict)
         else:
           for src in item.match_src:
-            # print src
             if (addr_obj == src):
               src_match = True
               pol_dict['Source'] = item.match_src
-              # print("Source Address: {}".format(item.match_src))
               pol_dict['Src_Zone'] = 'global'
               pol_dict['Dst_Zone'] = 'global'
               pol_dict['Dest'] = item.match_dst
               pol_dict["Port"] = item.match_app
               pol_dict['Action'] = item.action 
               pol_dict['Policy'] = item.name 
-              # policies_list.append(pol_dict)
           if(src_match):
             policies_list.append(pol_dict.copy())
-          # print policies_list
-  # print policies_list
+  
   return policies_list 
 
 
@@ -295,42 +296,8 @@ def GetArpEntry():
         print 'ip_address: ', arp.ip_address
         print 'interface_name:', arp.interface_name
         print 'hostname:', arp.host
-        print
 
-# JSON format
-# data = a_device.rpc.get_config(options={'format':'json'})
-# pprint (data)
 
-    # Junos XML elements
-# data = a_device.rpc.get_config(filter_xml='<system><services/></system>')
-# print(etree.tostring(data, encoding='unicode'))
- 
-# users = UserTable(a_device)
-# users.get()
-
-# arp = ArpTable(a_device)
-# arp.get()
-
-# policies = GlobalPolicies(a_device)
-# policies.get()
-
-# output_json = json.loads(policies.to_json())
-# print json.dumps(output_json, indent=4)
-
-# print policies
-
-# for account in users:
-    # print("Username is {}\nUser class is {}".format(account.username, account.userclass))
-
-# pprint(a_device.facts)
-
-# output_json = json.loads(arp.to_json())
-# print json.dumps(output_json, indent=4)
-
-# rsp = a_device.rpc.get_interface_information(interface_name='ge-0/0/0.0', terse=True)
-# pprint  (rsp.xpath(".// \
-    # address-family[normalize-space(address-family-name)='inet']/ \
-    # interface-address/ifa-local")[0].text)
 def GetDeviceFacts(a_device):
 
   return a_device.facts      
@@ -347,40 +314,3 @@ def connect_to_firewall(hostname, username, password):
 
   return a_device
 
-# def main():
-
-# data = a_device.rpc.get_config(options={'database' : 'committed'})
-# print(etree.tostring(data, encoding='unicode'))
-
-    # Text format
-# data = a_device.rpc.get_config(options={'format':'text'})
-# print(etree.tostring(data))
-
-    # Junos OS set format
-# data = a_device.rpc.get_config(options={'format':'set'})
-# print (etree.tostring(data))
-
-# sp = a_device.rpc.get_global_firewall_policies(policy_name='1', dev_timeout=55)
-# print sp
-
-  # eths = EthPortTable(a_device).get()
-
-  # for item in eths:
-    # print (item.name)
-
-  # dev = connect_to_firewall()
-
-  # policies = get_host_info(dev, 'sorc_obj', 'dest_obj','ser_obj')
-    
-  # policies = get_host_access_info(dev, 'sorc_obj')
-
-  # address = GlobalAddressBook(a_device).get()
-
-  # for item in address:
-    # print (item)
-    
-    
-  # dev.close()
-
-# if __name__ == "__main__":
- # main()

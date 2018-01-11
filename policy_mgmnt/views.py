@@ -35,33 +35,31 @@ def submit(request):
     password = p.firewall_pass
    
     # modify python code to take args and create new function
-    dev = connect_to_firewall(hostname, username, password)
-    if(dev):
+    # dev = connect_to_firewall(hostname, username, password)
+    # get_device_configuration(hostname, dev)
+    run=True
+    if(run):
     # call function and pass parameters to log in to fw
 
       if (form.cleaned_data["dest_info"] == 'all' and form.cleaned_data["app_info"] == 'all'):
         # global_policies = get_host_access_info(dev, 'CISCO-VOIP-PUBLIC.GLOBAL')
-        policies = get_host_to_all_info(hostname, dev, form.cleaned_data["source_info"])
+        policies = get_host_to_all_info(hostname, form.cleaned_data["source_info"])
  
       elif (form.cleaned_data["dest_info"] == 'all'):
-        policies = get_host_access_info_app(dev,form.cleaned_data["source_info"], form.cleaned_data["app_info"])
+        policies = get_host_access_info_app(form.cleaned_data["source_info"], form.cleaned_data["app_info"])
         # print policies
       else:
-        policies = get_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
+        policies = get_host_info(form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
         # get_zone_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
 
    
-      dev.close()  
+      # dev.close()  
     
       policy_table_clear = Policies.objects.all()
       policy_table_clear.delete()
       # print policies
       for item in policies:
-          Src_Zone = str(item.get('Src_Zone'))
-          print Src_Zone
-          Dst_Zone = str(item.get('Dst_Zone'))
           policy = re.sub(r'[^\w]', " ",str(item.get('Policy')))
-          print policy
           source = str(item.get('Source'))
           # source = re.sub(r'[^\w]', " ",str(item.get('Source')))
           dest = str(item.get('Dest'))
@@ -74,7 +72,7 @@ def submit(request):
           action = re.sub(r'[^\w]', " ",str(item.get('Action')))
         
           
-          new_policy = Policies.objects.create_policy(src_zone=Src_Zone, dst_zone=Dst_Zone,name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action, source_ip=source_ip, defined_as=defined_as, address_set=address_set, annotation='ttangney', firewall=FWName)
+          new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action, source_ip=source_ip, defined_as=defined_as, address_set=address_set, annotation='ttangney', firewall=FWName)
           new_policy.save()
 
           displayPolicy = Policies.objects.all()
