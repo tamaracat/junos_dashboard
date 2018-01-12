@@ -187,10 +187,6 @@ def get_device_configuration(hostname, a_device):
 
 def get_host_to_all_info(hostname, source):
 
-  # dev.open()
-  # data = dev.rpc.get_config(filter_xml=etree.XML('<configuration><security><policies></policies></security></configuration>')) 
-  # open('abc.xml','w').write(etree.tostring(data))
-
   policies_list = []   
   pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Source_IP': '', 'Defined_As': '', 'Defined_As': '', 'Address_Set': []}
   pol_dict['Source_IP'] = source
@@ -220,22 +216,25 @@ def get_host_to_all_info(hostname, source):
 
       address_vrs = GlobalAddressSet(path=junos_config_path)
       AddressSet = address_vrs.get()
-
-      for item in AddressSet:
-        if(address_obj in item.address):
-          print ('{} is in Address Set: {}').format(address_obj, item.set_name)
-          address_set = item.set_name
-          pol_dict['Address_Set'].append(address_set)
-          list_of_objects.append(address_set)
+      
+      for item in AddressSet:    
+        if(item.address):
+          if(address_obj in item.address):
+            print ('{} is in Address Set: {}').format(address_obj, item.set_name)
+            address_set = item.set_name
+            pol_dict['Address_Set'].append(address_set)
+            list_of_objects.append(address_set)
 
   
-  
+  # for zone in zone_context:
+  zone_rules = PolicyRuleTable(path=junos_config_path).get(policy=['trust','Untrust'], options=table_options)
+  print zone_rules
   '''
   for zone in zone_context:
         # Connects to firewall
       # path_file = 'PolicyRuleTable_' + zone.from_zone + zone.to_zone + '.xml'
       policies = PolicyRuleTable(path=junos_config_path).get(policy=[zone.from_zone,zone.to_zone], options=table_options)
-      print rules
+      print policies
       # policies.savexml(path=path_file,hostname=True)
       print policies 
       for addr_obj in list_of_objects:   
@@ -254,7 +253,7 @@ def get_host_to_all_info(hostname, source):
    
             if(src_match):
               policies_list.append(pol_dict.copy())
-  '''           
+  '''          
   policies = policies_vrs.get(options=table_options)
   
   for addr_obj in list_of_objects:
