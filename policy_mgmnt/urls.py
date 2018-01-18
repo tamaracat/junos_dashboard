@@ -17,7 +17,7 @@ urlpatterns = [
         template_name='policy.html',
         ), name="policy"),
 
-    url(r'^policyUpdate/', views.policyUpdate),
+    url(r'^policyUpdate', views.policyUpdate),
     url(r'^DisplayPolicyToUpdate', views.DisplayPolicyToUpdate),
 
 ]

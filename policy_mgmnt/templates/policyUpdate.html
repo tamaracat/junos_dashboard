@@ -10,81 +10,27 @@
         <h3>SRX Policy Dashboard</h3>
     </div>
    {% block content %}
-   
-     
+     <div class="row">
+      <div class="col-md-2">
+          
+      </div>
+      <div class="col-md-6 ">
           <h3>Firewall Ticket Resolution Application</h3>
           <br>
             <h3>Juniper Policy To Modify</h3>
             <br>
       <h3>{{ title }}</h3>
-       
-    {% if policies %}        
-    <table  class="table table-striped">
-    <thead>
-    <th scope="col">Policy</th>
-    <th scope="col">Source</th>
-    <th scope="col">Destination</th>
-    <th scope="col">Service</th> 
-    <th scope="col">Action</th> 
-    <th scope="col">Description</th>
-    </tr> 
-    </thead>
-    <tbody> 
-     {% for Policy in policies %}    
-      <tr>
-        <td> {{ Policy.Policy }}</td>
-        <td>{{ Policy.Source }}</td>
-        <td>{{ Policy.Dest }}</td>
-        <td>{{ Policy.Port }}</td>
-        <td>{{ Policy.Action }}</td></tr>
-        {% endfor %}
-        </tbody>
-      </table>
-
-      <form action="/policyUpdate/" method="POST" novalidate>
-          {%csrf_token%}
-          <table>
-            {{ form.as_table }}
-          </table> 
-          <input class="button primary" type="submit" value="Modify Policy"> 
-        </form>
-
-    {% elif databaseEntry %} 
-
-    <table  class="table table-striped">
-    <thead>
-   
-    <th scope="col">Policy</th>
-    <th scope="col">Source</th>
-    <th scope="col">Destination</th>
-    <th scope="col">Service</th> 
-    <th scope="col">Action</th> 
-    </tr> 
-    </thead>
-    <tbody> 
-      <tr>
-        <td> {{ databaseEntry.name }}</td>
-        <td>{{ databaseEntry.source_address }}</td>
-        <td>{{ databaseEntry.destination_address }}</td>
-        <td>{{ databaseEntry.application }}</td>
-        <td>{{ databaseEntry.action }}</td></tr> 
-        </tbody>
-      </table>
-
-       <form action="/policyUpdate/" method="POST">
-          {%csrf_token%}
-          <table>
-            {{ form.as_table }}
-          </table> 
-          <input class="button primary" type="submit" value="Modify Policy"> 
-        </form>
-
-    {% else %}
     
-    <p> No valid policy selected </p>
-
-    {% endif %}
-                  
+       {{ message }}
+      
+       <form action="policyUpdate" method="GET">
+          {%csrf_token%}
+          <table>
+            {{ form.as_table }}
+          </table> 
+          <input class="button primary" type="submit" value="Modify Policy"> 
+        </form>
+             
     {% endblock %}
-
+  </div>
 </div>

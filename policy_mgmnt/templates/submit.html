@@ -26,7 +26,7 @@
     <tbody> 
      {% for Policy in policies %}    
       <tr>
-        <td> {{ Policy.Policy }}</td>
+        <td>{{ Policy.Policy }}</td>
         <td>{{ Policy.Source }}</td>
         <td>{{ Policy.Dest }}</td>
         <td>{{ Policy.Port }}</td>
@@ -53,15 +53,14 @@
     </tr> 
     </thead>
     <tbody> 
-        {% for policyrow in displayObjectVars %} 
+     {% for policyrow in displayObjectVars %} 
       <tr>
-        <td> {{ policyrow.source_ip }}</td>
+        <td> {{ sourceIP }}</td>
         <td> {{ policyrow.defined_as }}</td>
         <td> {{ policyrow.address_set }}</td>
         {% endfor %}
     </tbody>
     </table>    
-
     <table  class="table table-striped">
     <thead>
     <th scope="col">Policy</th>
@@ -82,7 +81,46 @@
         {% endfor %}
         </tbody>
       </table>
-        
+
+    {% elif dest_databaseEntry %} 
+
+    <table  class="table table-striped">
+    <thead>
+    <th scope="col">Dest Host IP</th>
+    <th scope="col">Object(s)</th>
+    <th scope="col">Address Set(s)</th>   
+    </tr> 
+    </thead>
+    <tbody> 
+     {% for policyrow in displayObjectVars %} 
+      <tr>
+        <td> {{ destIP }}</td>
+        <td> {{ policyrow.defined_as }}</td>
+        <td> {{ policyrow.address_set }}</td>
+        {% endfor %}
+    </tbody>
+    </table>    
+    <table  class="table table-striped">
+    <thead>
+    <th scope="col">Policy</th>
+    <th scope="col">Source</th>
+    <th scope="col">Destination</th>
+    <th scope="col">Service</th> 
+    <th scope="col">Action</th> 
+    </tr> 
+    </thead>
+    <tbody> 
+        {% for policyrow in dest_databaseEntry %} 
+      <tr>
+        <td> {{ policyrow.name }}</td>
+        <td>{{ policyrow.source_address }}</td>
+        <td>{{ policyrow.destination_address }}</td>
+        <td>{{ policyrow.application }}</td>
+        <td>{{ policyrow.action }}</td></tr> 
+        {% endfor %}
+        </tbody>
+      </table>
+
     {% endif %}
 
     {% if facts %} 

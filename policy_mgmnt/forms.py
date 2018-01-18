@@ -24,9 +24,10 @@ class FirewallForm(forms.Form):
         fields = ['firewall_pass']
 
 class enterNewPolicyValues(forms.Form):
-    source_info = forms.CharField(label='Source Address', max_length=50)
-    dest_info = forms.CharField(label='Destination Address', max_length=50)
-    app_info = forms.CharField(label='Application', max_length=50)
+    policy_info = forms.CharField(label='Policy Name', max_length=50)
+    source_info = forms.GenericIPAddressField(label='Source Address', protocol='IPv4', required=False)
+    dest_info = forms.GenericIPAddressField(label='Destination Address', max_length=50, required=False)
+    app_info = forms.CharField(label='Application', max_length=50, required=False)
 
 class FirewallFactsForm(forms.Form):  
     Firewalls = forms.ModelChoiceField(empty_label="Select Firewall", queryset=Firewall.objects.all())
