@@ -22,7 +22,29 @@
       <h3>{{ title }}</h3>
     
        {{ message }}
-      
+    {% if source_databaseEntry %} 
+
+    <table  class="table table-striped">
+    <thead>
+    <th scope="col">Policy</th>
+    <th scope="col">Source</th>
+    <th scope="col">Destination</th>
+    <th scope="col">Service</th> 
+    <th scope="col">Action</th> 
+    </tr> 
+    </thead>
+    <tbody> 
+        {% for policyrow in source_databaseEntry %} 
+      <tr>
+        <td> {{ policyrow.name }}</td>
+        <td>{{ policyrow.source_address }}</td>
+        <td>{{ policyrow.destination_address }}</td>
+        <td>{{ policyrow.application }}</td>
+        <td>{{ policyrow.action }}</td></tr> 
+        {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
        <form action="policyUpdate" method="GET">
           {%csrf_token%}
           <table>

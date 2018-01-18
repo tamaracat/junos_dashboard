@@ -141,11 +141,8 @@ def modify_policy(request):
       run=True
       if(run):
         # python function get policy from  selected firewall for policy name
-        policies = get_policy_info(hostname, form.cleaned_data["policy_info"])
-        
-
-        print policies
-                
+        policies = get_policy_info(hostname, form.cleaned_data["policy_info"])   
+        print policies              
         print 'Returned value from get_policy_info {}'.format(policies)
       
         policy_table_clear = Policies.objects.all()
@@ -194,15 +191,15 @@ def policyUpdate(request):
 
   if request.method == 'POST':  
     form = enterNewPolicyValues(request.POST or None)
-    # policy_entry_check = Policies.policies.all().get()
-    # print policy_entry_check.name    
-    # print policy_entry_check.Destination_Address
-    context = { 
-        # 'title':policy_entry_check.firewall,
-        # 'databaseEntry':policy_entry_check,
-        'form': form
-        }
-
+   
+    displayPolicy = Policies.objects.all()
+    print displayPolicy
+                      
+    context = {
+       'source_databaseEntry':displayPolicy,
+       'form': form
+      }
+    
     return render(request, "policyUpdate.html", context)
   
   elif request.method == 'GET':
@@ -213,13 +210,16 @@ def policyUpdate(request):
       policy_info = form.cleaned_data["policy_info"]
       print("id: {}").format(policy_info)
       source_info = form.cleaned_data["source_info"]
-      if isinstance (source_info, str):
+      # if isinstance (source_info, str):
+      if source_info != '':
         print("source: {}").format(source_info)
       dest_info = form.cleaned_data["dest_info"]
-      if isinstance (dest_info, str):
+      # if isinstance (dest_info, str):
+      if dest_info != '':
         print("dest: {}").format(dest_info)
       app_info = form.cleaned_data["app_info"]
-      if isinstance (app_info, str):
+      # if isinstance (app_info, str):
+      if app_info != '':
         print("service: {}").format(app_info)
       
       #find and display policy stored in database
