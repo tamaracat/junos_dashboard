@@ -44,14 +44,36 @@
         {% endfor %}
         </tbody>
       </table>
+      <br>
+      
       {% endif %}
-       <form action="policyUpdate" method="GET">
+       <form action="{% url 'policyUpdate' %}" method="GET">
           {%csrf_token%}
           <table>
             {{ form.as_table }}
           </table> 
-          <input class="button primary" type="submit" value="Modify Policy"> 
+          <input class="button primary" type="submit" value="Update Policy" href="?policyUpdate={{ policyrow.name }}&policy_name={{ policy_name }}">{{ policyrow.name }}
         </form>
+        <br>
+        <br>
+        {% if policies %} 
+
+     
+  </ul>
+   <p>configure</p>
+   <p>top</p>
+   <p>edit security policies global policy {{ policies.Policy }} match</p>
+   <p>set source-address {{ policies.Source }}</p>
+   <p>set destination-address {{ policies.Dest }}</p>
+   <p>exit</p>
+   <p>edit security policies global</p>
+   <p>annotate policy {{ policies.Policy }} "{{ policies.Ticket }} XX/XX/18 {{ policies.Engineer }}"</p>
+   <p>top</p>
+   <p>show | compare rollback 0</p>
+   <p>commit check</p>
+   <p>load patch /var/tmp/chg_XXXX18.txt</p>
+   <p>show | compare rollback 0 | save /var/tmp/chg_XXXX18.txt</p>
+        {% endif %}
              
     {% endblock %}
   </div>

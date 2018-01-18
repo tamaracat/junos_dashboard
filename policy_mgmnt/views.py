@@ -142,7 +142,7 @@ def modify_policy(request):
       if(run):
         # python function get policy from  selected firewall for policy name
         policies = get_policy_info(hostname, form.cleaned_data["policy_info"])   
-        print policies              
+        # print policies              
         print 'Returned value from get_policy_info {}'.format(policies)
       
         policy_table_clear = Policies.objects.all()
@@ -187,8 +187,8 @@ def modify_policy(request):
 @ensure_csrf_cookie
 def policyUpdate(request):
       
-  pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': []}
-
+  pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'App': [], 'Engineer': [], 'Ticket': []}
+  
   if request.method == 'POST':  
     form = enterNewPolicyValues(request.POST or None)
    
@@ -203,12 +203,82 @@ def policyUpdate(request):
     return render(request, "policyUpdate.html", context)
   
   elif request.method == 'GET':
-    print " GET in def policyUpdate(request):"
-    print ("firewall is: {}").format(globalFWName) 
+ 
     form = enterNewPolicyValues(request.GET)
     if form.is_valid():
-      policy_info = form.cleaned_data["policy_info"]
-      print("id: {}").format(policy_info)
+      
+      source_info = form.cleaned_data["source_info"]
+      if source_info != '':
+        print("source: {}").format(source_info)
+        pol_dict['Source'] = source_info
+
+      dest_info = form.cleaned_data["dest_info"]
+      if dest_info != '':
+        print("dest: {}").format(dest_info)
+        pol_dict['Dest'] = dest_info
+
+      app_info = form.cleaned_data["app_info"]
+      if app_info != '':
+        print("service: {}").format(app_info)
+        pol_dict['App'] = app_info
+
+      engineer = form.cleaned_data["eng_name"]
+      if engineer != '':
+         print("Engineer: {}").format(engineer)
+         pol_dict['Engineer'] = engineer
+
+      fp_ticket = form.cleaned_data["fp_ticket"]
+      if app_info != '':
+        print("Ticket: {}").format(fp_ticket)
+        pol_dict['Ticket'] = fp_ticket
+      
+      #find and display policy stored in database
+      try:
+        database_entry = Policies.objects.all()[:1]
+        querySet = Policies.objects.all().get()
+        name = querySet.name
+        print querySet.name
+        print querySet.source_address
+        print querySet.destination_address
+        print querySet.firewall
+      except Policies.DoesNotExist:
+            raise Http404("No Policies matches the given query.")
+      else:
+          print pol_dict.get('Source')
+          message_string = "Policy " + querySet.name
+          pol_dict['Policy'] = querySet.name
+          
+          context = { 
+          'title':querySet.firewall,
+          'message':message_string,
+          'source_database_entry': database_entry,
+          'policies': pol_dict,
+          'form': form
+            }  
+          return render(request, "policyUpdate.html", context)
+     
+
+@ensure_csrf_cookie
+def DisplayPolicyToUpdate(request):
+      
+  if request.method == 'GET':   
+
+    policy_name = request.GET('policyrow.name')
+    print policy_name
+    if not policy_name:
+            print "DID NOT WORK"
+    else:
+      print ("Policy from HTML: {}").format(policy_name)
+    '''
+    policy_name = request.GET.get('policyrow.name')
+    if not policy_name:
+            print "DID NOT WORK"
+    else:
+      print ("Policy from HTML: {}").format(policy_name)
+    print " GET in def policyUpdate(request):"
+    '''
+    form = enterNewPolicyValues(request.GET)
+    if form.is_valid():
       source_info = form.cleaned_data["source_info"]
       # if isinstance (source_info, str):
       if source_info != '':
@@ -224,7 +294,8 @@ def policyUpdate(request):
       
       #find and display policy stored in database
       try:
-        querySet = Policies.objects.all().filter(name=policy_info).get()
+        database_entry = Policies.objects.all().filter(name=policy_name)
+        querySet = Policies.objects.all().filter(name=policy_name).get()
         name = querySet.name
         print querySet.name
         print querySet.source_address
@@ -235,34 +306,19 @@ def policyUpdate(request):
       else:
       
           message_string = "Policy " + querySet.name
-
+          
           context = { 
           'title':querySet.firewall,
           'message':message_string,
+          'source_database_entry': database_entry,
           'proposed_mod': 'yes',
           'form': form
             }  
-          return render(request, "policyUpdate.html", context)
-     
+          return render(request, "DisplayPolicyToUpdate.html", context)
 
-@ensure_csrf_cookie
-def DisplayPolicyToUpdate(request):
-      
-  if request.method == 'GET':     
-    form = enterNewPolicyValues(request.GET or None)
-    if form.is_valid():
-      source =  form.cleaned_data["source_info"]
-      dest = form.cleaned_data["dest_info"]
-      app = form.cleaned_data["app_info"]
-         
-      policy_entry_check = Policies.policies.all().get()
-   
-      context = { 
-          'title':policy_entry_check.firewall,
-          'databaseEntry':policy_entry_check,
-        }
-
-      return render(request, "DisplayPolicyToUpdate.html", context)
+def products_view(request):
+    price_lte = request.GET['price_lte']
+    #Code to filter products whose price is less than price_lte i.e. 5000
 
 def get_facts(request):
       

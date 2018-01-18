@@ -10,19 +10,21 @@ urlpatterns = [
     url(r'^policy_mgmnt/', views.home, name='policy_mgmnt'),
     url(r'^$', views.home, name='policy_mgmnt'),
     url(r'^submit', views.submit),
-    url(r'^modify_policy', views.modify_policy),
+    url(r'^modify_policy', views.modify_policy, name='modify_policy'),
     url(r'^get_facts', views.get_facts, name='get_facts'),
     url(r'^(?P<pk>\d+)-(?P<slug>[-\w]+)/$', DetailView.as_view(
         context_object_name='policy',
         template_name='policy.html',
         ), name="policy"),
 
-    url(r'^policyUpdate', views.policyUpdate),
-    url(r'^DisplayPolicyToUpdate', views.DisplayPolicyToUpdate),
+    url(r'^policyUpdate/$', views.policyUpdate, name='policyUpdate'),
+    # url(r'^DisplayPolicyToUpdate/(?P<policy_name>\d+)/$', views.DisplayPolicyToUpdate, name='DisplayPolicyToUpdate'),
 
+    url(r'^products/$', views.products_view, name='products'),
 ]
 
 urlpatterns += [
-    url(r'^$', RedirectView.as_view(url='/policy_mgmnt', permanent=False))
+    url(r'^$', RedirectView.as_view(url='/', permanent=False))
 ]
+
  

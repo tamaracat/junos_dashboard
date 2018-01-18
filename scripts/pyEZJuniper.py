@@ -345,8 +345,6 @@ def get_policy_info(hostname, policy_name):
       
   pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Defined_As': '','Address_Set': []}
       
-  print ("hostname is: {}").format(hostname) 
-  print ("Policy Name is: {}").format(policy_name) 
 
   policies_list = []   
   
@@ -377,8 +375,6 @@ def get_policy_info(hostname, policy_name):
 
 def get_source_dest_app_policy_info(hostname, source_name, dest_name, app_name):
       
-  print ("hostname is: {}").format(hostname) 
-  print ("Policy Name is: {}").format(policy_name) 
 
   policies_list = []   
   
