@@ -44,6 +44,14 @@ class Firewall(models.Model):
     def __str__(self):
         return self.firewall_name
 
+class Engineer(models.Model):
+    engineer_name = models.CharField('Name', max_length=50)
+    engineer_netid = models.CharField('Net ID', max_length=50, blank=True)
+    engineer_fw_sig = models.CharField('FW Sig', max_length=50, blank=True)
+
+    def __str__(self):
+        return self.engineer_name
+
 class PolicyManager(models.Manager):
     def create_policy(self, name, source_address, destination_address, application, action, defined_as, address_set, annotation, firewall):
       new_policy = self.create(name=name, source_address=source_address, destination_address=destination_address, application=application, action=action, defined_as=defined_as, address_set=address_set, annotation=annotation, firewall=firewall)

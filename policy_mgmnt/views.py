@@ -8,15 +8,19 @@ from django.utils import timezone
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.core.urlresolvers import reverse
-from models import Firewall, Policies, FirewallManager, PolicyManager
+from models import Firewall, Policies, FirewallManager, PolicyManager, Engineer
 from django.views.decorators.csrf import ensure_csrf_cookie
 from scripts.pyEZJuniper import *
 from .forms import ContactForm, ModifyPolicyForm, enterNewPolicyValues, FirewallFactsForm
 from django.template import loader
-import re
-import json
-# import sys, ast
+from datetime import datetime, timedelta
+import datetime
+from pytz import timezone
+import pytz
+import re, json
+
 globalFWName=''
+
 
 @ensure_csrf_cookie
 def submit(request):
@@ -43,24 +47,29 @@ def submit(request):
       sourceDatabaseEntry=False
       destDatabaseEntry=False
     # call function and pass parameters to log in to fw
-      if (form.cleaned_data["dest_info"] == 'all' and form.cleaned_data["app_info"] == 'all'):
-        # global_policies = get_host_access_info(dev, 'CISCO-VOIP-PUBLIC.GLOBAL')
+      if (form.cleaned_data["dest_info"] == '' and form.cleaned_data["app_info"] == ''):
         policies = get_host_to_all_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"])
         sourceDatabaseEntry=True
         sourceIP = form.cleaned_data["source_info"]
-      elif (form.cleaned_data["source_info"] == 'all' and form.cleaned_data["app_info"] == 'all'):
+      elif (form.cleaned_data["source_info"] == '' and form.cleaned_data["app_info"] == ''):
         policies = get_host_to_all_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"])
         destDatabaseEntry=True
         destIP = form.cleaned_data["dest_info"]
-      else:
-        policies = get_source_dest_app_policy_info(form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
-        # get_zone_host_info(dev, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
-
+        # print policies
+      elif (form.cleaned_data["source_info"] != '' and form.cleaned_data["dest_info"] != '' and form.cleaned_data["app_info"] == ''):
+        policies = get_host_to_all_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"])
+        source_destDatabaseEntry=True
+        sourceIP = form.cleaned_data["source_info"]
+        destIP = form.cleaned_data["dest_info"] 
+      elif (form.cleaned_data["source_info"] != '' and form.cleaned_data["dest_info"] != '' and form.cleaned_data["app_info"] != ''):
+        policies = get_source_dest_app_policy_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
+        all_destDatabaseEntry=True
+       
       # dev.close()  
     
       policy_table_clear = Policies.objects.all()
       policy_table_clear.delete()
-      # print policies
+      print policies
       for item in policies:
           policy = re.sub(r'[^\w]', " ",str(item.get('Policy')))
           source = str(item.get('Source'))
@@ -93,7 +102,14 @@ def submit(request):
             'dest_databaseEntry':displayPolicy,
             'displayObjectVars' :displayObjectVars,
            }
-
+        elif source_destDatabaseEntry:
+            context = { 
+              'title':FWName,
+              'sourceIP': sourceIP,
+              'destIP': destIP,
+              'source_dest_databaseEntry':displayPolicy,
+              'displayObjectVars' :displayObjectVars,
+             }
         return render(request, "submit.html", context)
       else:
         context = { 
@@ -112,6 +128,8 @@ def submit(request):
       return render(request, "submit.html", context) 
 
 def home(request):
+
+
     
     form = ContactForm()
  
@@ -148,7 +166,7 @@ def modify_policy(request):
         policy_table_clear = Policies.objects.all()
         policy_table_clear.delete()
         
-        if isinstance(policies, list):
+        if policies:
           for item in policies:
             policy = str(item.get('Policy'))
             source = str(item.get('Source'))
@@ -184,16 +202,33 @@ def modify_policy(request):
   
     return render(request, "modify_policy.html", {'form':form})
 
+def next_weekday(d, weekday):
+  days_ahead = weekday - d.weekday()
+  if days_ahead <= 0: # Target day already happened this week
+      days_ahead += 7
+  return d + datetime.timedelta(days_ahead)
+
 @ensure_csrf_cookie
 def policyUpdate(request):
       
-  pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'App': [], 'Engineer': [], 'Ticket': []}
+  utc_now = pytz.utc.localize(datetime.datetime.utcnow())
+  cst_now = utc_now.astimezone(pytz.timezone("America/Chicago"))
+  print cst_now
+  print cst_now.month
+  print cst_now.day
+  print cst_now.year
+
+  # date_str = cst_now.month + '/' + cst_now.day + '/' + cst_now.year
+  
+  pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'App': [], 'Engineer': '', 'Ticket': '', 'Date': '', 'EngDate': ''}
+  create_address_obj_dict = {'Address': [], 'Object': []}
+  address_obj_list=[]
   
   if request.method == 'POST':  
     form = enterNewPolicyValues(request.POST or None)
    
     displayPolicy = Policies.objects.all()
-    print displayPolicy
+    # print displayPolicy
                       
     context = {
        'source_databaseEntry':displayPolicy,
@@ -205,37 +240,51 @@ def policyUpdate(request):
   elif request.method == 'GET':
  
     form = enterNewPolicyValues(request.GET)
-    if form.is_valid():
-      
+    if form.is_valid():     
       source_info = form.cleaned_data["source_info"]
-      if source_info != '':
-        print("source: {}").format(source_info)
-        pol_dict['Source'] = source_info
-
       dest_info = form.cleaned_data["dest_info"]
-      if dest_info != '':
-        print("dest: {}").format(dest_info)
-        pol_dict['Dest'] = dest_info
-
       app_info = form.cleaned_data["app_info"]
-      if app_info != '':
-        print("service: {}").format(app_info)
-        pol_dict['App'] = app_info
 
       engineer = form.cleaned_data["eng_name"]
       if engineer != '':
-         print("Engineer: {}").format(engineer)
-         pol_dict['Engineer'] = engineer
+        #  print("Engineer: {}").format(engineer)      
+         querySet = Engineer.objects.all().filter(engineer_name=engineer)
+         print [p.engineer_name for p in querySet]
+         EngineerWName = p.engineer_fw_sig
+         pol_dict['Engineer'] = EngineerWName
 
       fp_ticket = form.cleaned_data["fp_ticket"]
       if app_info != '':
         print("Ticket: {}").format(fp_ticket)
         pol_dict['Ticket'] = fp_ticket
-      
+
+      patch_day = form.cleaned_data["patch_day"]
+      if patch_day != '':
+        print("Patch Day: {}").format(patch_day)
+        
+      if patch_day == 'Tuesday':
+        d = datetime.datetime.now().date()
+        day = next_weekday(d, 1) # 0 = Monday, 1=Tuesday, 2=Wednesday...
+        print('next_tuesday: {}').format(day)
+        patch_day_str = str(day.month) + str(day.day) + str(day.year)
+        eng_patch_day_str = str(day.month) + '/' + str(day.day) + '/' + str(day.year)
+        pol_dict['Date'] = patch_day_str 
+        pol_dict['EngDate'] = eng_patch_day_str 
+          
+      elif patch_day == 'Friday':
+        d = datetime.datetime.now().date()
+        day = next_weekday(d, 4) # 0 = Monday, 1=Tuesday, 2=Wednesday...
+        print('next_friday: {}').format(day)
+        patch_day_str = str(day.month) + str(day.day) + str(day.year)
+        eng_patch_day_str = str(day.month) + '/' + str(day.day) + '/' + str(day.year)
+        pol_dict['Date'] = patch_day_str 
+        pol_dict['EngDate'] = eng_patch_day_str 
+         
       #find and display policy stored in database
       try:
         database_entry = Policies.objects.all()[:1]
         querySet = Policies.objects.all().get()
+ 
         name = querySet.name
         print querySet.name
         print querySet.source_address
@@ -244,77 +293,104 @@ def policyUpdate(request):
       except Policies.DoesNotExist:
             raise Http404("No Policies matches the given query.")
       else:
-          print pol_dict.get('Source')
-          message_string = "Policy " + querySet.name
-          pol_dict['Policy'] = querySet.name
-          
-          context = { 
-          'title':querySet.firewall,
-          'message':message_string,
-          'source_database_entry': database_entry,
-          'policies': pol_dict,
-          'form': form
-            }  
-          return render(request, "policyUpdate.html", context)
+           try:
+            Firewall_IP = Firewall.objects.all().get(firewall_name=querySet.firewall)
+           except Policies.DoesNotExist:
+            raise Http404("No Policies matches the given query.")
+           else:
+            address_obj_create = False
+            add_source=False
+            add_dest=False
+            if source_info != '':
+              add_source=True
+              address_obj = find_obj_defn(Firewall_IP.firewall_manageip, source_info)
+              if address_obj:
+                pol_dict['Source'] = address_obj[0]
+              else:
+                created_address_obj = create_address_object(source_info)
+                pol_dict['Source'] = created_address_obj
+                create_address_obj_dict['Address'] = source_info
+                create_address_obj_dict['Object'] = created_address_obj
+                address_obj_list.append(create_address_obj_dict)
+                address_obj_create=True
+                print ('create_address_obj_dict {}').format(create_address_obj_dict)
+            if dest_info != '':
+              add_dest=True
+              address_obj = find_obj_defn(Firewall_IP.firewall_manageip, dest_info)
+              if address_obj:
+                pol_dict['Dest'] = address_obj[0]
+              else:
+                created_address_obj = create_address_object(dest_info)
+                pol_dict['Dest'] = created_address_obj
+                create_address_obj_dict['Address'] = dest_info
+                create_address_obj_dict['Object'] = created_address_obj
+                address_obj_list.append(create_address_obj_dict)
+                address_obj_create=True
+                print ('create_address_obj_dict {}').format(create_address_obj_dict)
+                
+            if app_info != '':
+              pol_dict['App'] = app_info
+              
+            message_string = "Policy " + querySet.name
+
+            pol_dict['Policy'] = querySet.name
+            print pol_dict.get('Date')
+
+            if address_obj_create and add_source and add_dest:
+              context = { 
+              'firewall':querySet.firewall,
+              'create_address_obj': address_obj_list,
+              'source_database_entry': database_entry,
+              'policies': pol_dict,
+              'form': form
+              }    
+            elif address_obj_create and add_source == False and add_dest:
+               context = { 
+              'no_source': 'no_source',
+              'firewall':querySet.firewall,
+              'create_address_obj': address_obj_list,
+              'source_database_entry': database_entry,
+              'policies': pol_dict,
+              'form': form
+              }  
+            elif address_obj_create and add_source and add_dest == False:
+              context = { 
+              'no_dest': 'no_dest',
+              'firewall':querySet.firewall,
+              'create_address_obj': address_obj_list,
+              'source_database_entry': database_entry,
+              'policies': pol_dict,
+              'form': form
+              }  
+            elif address_obj_create==False and add_source and add_dest:
+               context = { 
+              'firewall':querySet.firewall,
+              'source_database_entry': database_entry,
+              'policies': pol_dict,
+              'form': form
+              } 
+            elif address_obj_create==False and add_source == False and add_dest: 
+              context = { 
+              'no_source': 'no_source',
+              'firewall':querySet.firewall,
+              'source_database_entry': database_entry,
+              'policies': pol_dict,
+              'form': form
+              }
+            elif address_obj_create==False and add_source and add_dest==False:    
+              context = { 
+              'no_dest': 'no_dest',
+              'firewall':querySet.firewall,
+              'source_database_entry': database_entry,
+              'policies': pol_dict,
+              'form': form
+              }            
+            return render(request, "policyUpdate.html", context)
      
 
 @ensure_csrf_cookie
-def DisplayPolicyToUpdate(request):
-      
-  if request.method == 'GET':   
-
-    policy_name = request.GET('policyrow.name')
-    print policy_name
-    if not policy_name:
-            print "DID NOT WORK"
-    else:
-      print ("Policy from HTML: {}").format(policy_name)
-    '''
-    policy_name = request.GET.get('policyrow.name')
-    if not policy_name:
-            print "DID NOT WORK"
-    else:
-      print ("Policy from HTML: {}").format(policy_name)
-    print " GET in def policyUpdate(request):"
-    '''
-    form = enterNewPolicyValues(request.GET)
-    if form.is_valid():
-      source_info = form.cleaned_data["source_info"]
-      # if isinstance (source_info, str):
-      if source_info != '':
-        print("source: {}").format(source_info)
-      dest_info = form.cleaned_data["dest_info"]
-      # if isinstance (dest_info, str):
-      if dest_info != '':
-        print("dest: {}").format(dest_info)
-      app_info = form.cleaned_data["app_info"]
-      # if isinstance (app_info, str):
-      if app_info != '':
-        print("service: {}").format(app_info)
-      
-      #find and display policy stored in database
-      try:
-        database_entry = Policies.objects.all().filter(name=policy_name)
-        querySet = Policies.objects.all().filter(name=policy_name).get()
-        name = querySet.name
-        print querySet.name
-        print querySet.source_address
-        print querySet.destination_address
-        print querySet.firewall
-      except Policies.DoesNotExist:
-            raise Http404("No Policies matches the given query.")
-      else:
-      
-          message_string = "Policy " + querySet.name
-          
-          context = { 
-          'title':querySet.firewall,
-          'message':message_string,
-          'source_database_entry': database_entry,
-          'proposed_mod': 'yes',
-          'form': form
-            }  
-          return render(request, "DisplayPolicyToUpdate.html", context)
+def DisplayPolicyToUpdate(request):     
+  return True
 
 def products_view(request):
     price_lte = request.GET['price_lte']

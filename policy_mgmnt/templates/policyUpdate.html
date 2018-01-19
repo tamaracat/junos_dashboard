@@ -7,21 +7,16 @@
     <link rel="stylesheet" type="text/css" href="{% static 'css/styles.css' %}" />
     <!-- Add a header to the table -->
     <div class="table-title">
-        <h3>SRX Policy Dashboard</h3>
     </div>
    {% block content %}
      <div class="row">
-      <div class="col-md-2">
-          
+      <div class="col-md-2">         
       </div>
-      <div class="col-md-6 ">
+      <div class="col-md-8 ">
           <h3>Firewall Ticket Resolution Application</h3>
           <br>
-            <h3>Juniper Policy To Modify</h3>
-            <br>
-      <h3>{{ title }}</h3>
-    
-       {{ message }}
+      <h4>{{ firewall }}</h4>
+      <br>
     {% if source_databaseEntry %} 
 
     <table  class="table table-striped">
@@ -55,24 +50,33 @@
           <input class="button primary" type="submit" value="Update Policy" href="?policyUpdate={{ policyrow.name }}&policy_name={{ policy_name }}">{{ policyrow.name }}
         </form>
         <br>
-        <br>
-        {% if policies %} 
 
+  {% if policies %} 
      
   </ul>
-   <p>configure</p>
-   <p>top</p>
-   <p>edit security policies global policy {{ policies.Policy }} match</p>
-   <p>set source-address {{ policies.Source }}</p>
-   <p>set destination-address {{ policies.Dest }}</p>
-   <p>exit</p>
-   <p>edit security policies global</p>
-   <p>annotate policy {{ policies.Policy }} "{{ policies.Ticket }} XX/XX/18 {{ policies.Engineer }}"</p>
-   <p>top</p>
-   <p>show | compare rollback 0</p>
-   <p>commit check</p>
-   <p>load patch /var/tmp/chg_XXXX18.txt</p>
-   <p>show | compare rollback 0 | save /var/tmp/chg_XXXX18.txt</p>
+   <div>configure</div>
+   <div>top</div>
+   {% if create_address_obj %}
+     {% for value in create_address_obj %}
+       <div>set security address-book global address {{ value.Object}} {{ value.Address }}</div>
+     {% endfor %}
+     <div>top</div>
+   {% endif %}
+   <div>edit security policies global policy {{ policies.Policy }} match</div>
+   {% if no_source %}
+     <div>set destination-address {{ policies.Dest }}</div>
+   {% endif %}
+   {% if no_dest %}
+     <div>set source-address {{ policies.Source }}</div>
+   {% endif %}
+   <div>exit</div>
+   <div>edit security policies global</div>
+   <div>annotate policy {{ policies.Policy }} "{{ policies.Ticket }} {{ policies.EngDate }} {{ policies.Engineer }}"</div>
+   <div>top</div>
+   <div>show | compare rollback 0</div>
+   <div>commit check</div>
+   <div>load patch /var/tmp/chg_{{ policies.Date }}.txt</div>
+   <div>show | compare rollback 0 | save /var/tmp/chg_{{ policies.Date }}.txt</div>
         {% endif %}
              
     {% endblock %}
