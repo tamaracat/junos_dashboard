@@ -244,10 +244,6 @@ def get_source_and_dest_info(hostname, source, dest):
 
   junos_config_path = 'junos-config_' + hostname + '.xml'
 
-  xmlparser = jxmlease.Parser()
-  xml = open(junos_config_path).read()
-  data = jxmlease.parse(xml)
-  # print data
 
   policies_vrs = GlobalPoliciesMatch(path=junos_config_path)
   policies = policies_vrs.get() 
@@ -281,7 +277,7 @@ def get_source_and_dest_info(hostname, source, dest):
     if (item.address == addressSetFindDest):  
       dst_address_obj = item.name
       pol_dict['DstDefined_As'] = item.name
-      list_of_dst_objects.append(address_obj)
+      list_of_dst_objects.append(dst_address_obj)
 
       address_vrs = GlobalAddressSet(path=junos_config_path)
       AddressSet = address_vrs.get()
@@ -293,7 +289,7 @@ def get_source_and_dest_info(hostname, source, dest):
             address_set = item.set_name
             pol_dict['Dst_Address_Set'].append(address_set)
             list_of_dst_objects.append(address_set)
-      print list_of_dst_objects
+      # print list_of_dst_objects
         
         
   for addr_obj in list_of_objects:
@@ -306,16 +302,18 @@ def get_source_and_dest_info(hostname, source, dest):
       for src in my_list:
         if (addr_obj == src):
           src_match = True
+          print ("Source match: {}").format(addr_obj)
           #check to see if destination ojject is in policy
           for dst_addr_obj in list_of_dst_objects:
             dst_match=False
             if isinstance(item.match_dst, str):
-              my_list = [item.match_dst]
+              my_dst_list = [item.match_dst]
             else: 
-              my_list = item.match_dst
-            for dst in my_list:
+              my_dst_list = item.match_dst
+            for dst in my_dst_list:
               if (dst_addr_obj == dst): 
                 dst_match = True
+                print ("Dest match: {}").format(dst_addr_obj)
                 pol_dict['Source'] = item.match_src
                 pol_dict['Src_Zone'] = 'global'
                 pol_dict['Dst_Zone'] = 'global'

@@ -175,7 +175,7 @@ def modify_policy(request):
             port = str(item.get('Port'))
             action = str(item.get('Action'))
         
-            new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action, defined_as="empty", address_set="none", annotation='ttangney', firewall=FWName)
+            new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action, defined_as="empty", dest_defined_as="empty", address_set="none", dst_address_set="none", annotation='ttangney', firewall=FWName)
             new_policy.save()
 
             displayPolicy = Policies.objects.all()
