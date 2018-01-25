@@ -40,8 +40,8 @@ def submit(request):
     password = p.firewall_pass
    
     # modify python code to take args and create new function
-    # dev = connect_to_firewall(hostname, username, password)
-    # get_device_configuration(hostname, dev)
+    #dev = connect_to_firewall(hostname, username, password)
+    #get_device_configuration(hostname, dev)
     run=True
     if(run):
       sourceDatabaseEntry=False
@@ -57,8 +57,8 @@ def submit(request):
         destIP = form.cleaned_data["dest_info"]
         # print policies
       elif (form.cleaned_data["source_info"] != '' and form.cleaned_data["dest_info"] != '' and form.cleaned_data["app_info"] == ''):
-        policies = get_host_to_all_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"])
-        source_destDatabaseEntry=True
+        policies = get_source_and_dest_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"])
+        source_dest_databaseEntry=True
         sourceIP = form.cleaned_data["source_info"]
         destIP = form.cleaned_data["dest_info"] 
       elif (form.cleaned_data["source_info"] != '' and form.cleaned_data["dest_info"] != '' and form.cleaned_data["app_info"] != ''):
@@ -77,11 +77,12 @@ def submit(request):
           dest = str(item.get('Dest'))
           port = str(item.get('Port'))
           defined_as = str(item.get('Defined_As'))
+          dest_defined_as = str(item.get('DstDefined_As'))
           address_set = str(item.get('Address_Set'))
+          dst_address_set = str(item.get('Dst_Address_Set'))
           action = re.sub(r'[^\w]', " ",str(item.get('Action')))
-        
-          
-          new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=dest, application=port, action=action, defined_as=defined_as, address_set=address_set, annotation='ttangney', firewall=FWName)
+           
+          new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=dest, application=port, action=action, defined_as=defined_as, dest_defined_as=dest_defined_as, address_set=address_set, dst_address_set=dst_address_set,annotation='ttangney', firewall=FWName)
           new_policy.save()
 
           displayPolicy = Policies.objects.all()
@@ -102,7 +103,7 @@ def submit(request):
             'dest_databaseEntry':displayPolicy,
             'displayObjectVars' :displayObjectVars,
            }
-        elif source_destDatabaseEntry:
+        elif source_dest_databaseEntry:
             context = { 
               'title':FWName,
               'sourceIP': sourceIP,

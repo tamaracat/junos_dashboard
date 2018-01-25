@@ -226,6 +226,108 @@ def create_address_object( host ):
 
   return address_object
 
+def get_source_and_dest_info(hostname, source, dest):
+
+  policies_list = []
+
+  pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Defined_As': '','DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
+
+  if(source != '' and dest != ''):
+        
+    pol_dict['Source'] = source
+    pol_dict['Dest'] = dest
+    addressSetFind = source
+    addressSetFindDest = dest
+
+  list_of_objects = []
+  list_of_dst_objects = []
+
+  junos_config_path = 'junos-config_' + hostname + '.xml'
+
+  xmlparser = jxmlease.Parser()
+  xml = open(junos_config_path).read()
+  data = jxmlease.parse(xml)
+  # print data
+
+  policies_vrs = GlobalPoliciesMatch(path=junos_config_path)
+  policies = policies_vrs.get() 
+
+  xcvrs = GlobalAddressBook(path=junos_config_path)
+  IP_Address = xcvrs.get() 
+
+  address_vrs = GlobalAddressSet(path=junos_config_path)
+
+  for item in IP_Address:
+    
+    if (item.address == addressSetFind):  
+      address_obj = item.name
+      pol_dict['Defined_As'] = item.name
+      list_of_objects.append(address_obj)
+
+      address_vrs = GlobalAddressSet(path=junos_config_path)
+      AddressSet = address_vrs.get()
+      
+      for item in AddressSet:    
+        if(item.address):
+          if(address_obj in item.address):
+            print ('{} is in Address Set: {}').format(address_obj, item.set_name)
+            address_set = item.set_name
+            pol_dict['Address_Set'].append(address_set)
+            list_of_objects.append(address_set)
+      print list_of_objects
+
+  for item in IP_Address:
+    
+    if (item.address == addressSetFindDest):  
+      dst_address_obj = item.name
+      pol_dict['DstDefined_As'] = item.name
+      list_of_dst_objects.append(address_obj)
+
+      address_vrs = GlobalAddressSet(path=junos_config_path)
+      AddressSet = address_vrs.get()
+      
+      for item in AddressSet:    
+        if(item.address):
+          if(dst_address_obj in item.address):
+            print ('{} is in Address Set: {}').format(dst_address_obj, item.set_name)
+            address_set = item.set_name
+            pol_dict['Dst_Address_Set'].append(address_set)
+            list_of_dst_objects.append(address_set)
+      print list_of_dst_objects
+        
+        
+  for addr_obj in list_of_objects:
+    for item in policies:
+      src_match=False     
+      if isinstance(item.match_src, str):
+        my_list = [item.match_src]
+      else: 
+        my_list = item.match_src
+      for src in my_list:
+        if (addr_obj == src):
+          src_match = True
+          #check to see if destination ojject is in policy
+          for dst_addr_obj in list_of_dst_objects:
+            dst_match=False
+            if isinstance(item.match_dst, str):
+              my_list = [item.match_dst]
+            else: 
+              my_list = item.match_dst
+            for dst in my_list:
+              if (dst_addr_obj == dst): 
+                dst_match = True
+                pol_dict['Source'] = item.match_src
+                pol_dict['Src_Zone'] = 'global'
+                pol_dict['Dst_Zone'] = 'global'
+                pol_dict['Dest'] = item.match_dst
+                pol_dict["Port"] = item.match_app
+                pol_dict['Action'] = item.action 
+                pol_dict['Policy'] = item.name 
+            if(src_match and dst_match):
+              policies_list.append(pol_dict.copy())
+      
+  return policies_list 
+
 def get_host_to_all_info(hostname, source, dest):
       
   pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Defined_As': '','Address_Set': []}
@@ -243,12 +345,6 @@ def get_host_to_all_info(hostname, source, dest):
     pol_dict['Dest'] = dest
     destLogic = True
     addressSetFind = dest
-  elif(isinstance (source, str) and isinstance (source, str) ):
-    pol_dict['Source'] = source
-    pol_dict['Dest'] = dest
-    source_destLogic = True
-    addressSetFindSource = source
-    addressSetFindDest = dest
 
   list_of_objects = []
 
@@ -290,28 +386,6 @@ def get_host_to_all_info(hostname, source, dest):
               pol_dict['Address_Set'].append(address_set)
               list_of_objects.append(address_set)
         print list_of_objects
-
-  elif source_destLogic:
-    for item in IP_Address:
-        
-      if (item.address == addressSetFindSource):
-      
-        address_obj = item.name
-        pol_dict['Defined_As'] = item.name
-        list_of_objects.append(address_obj)
-
-        address_vrs = GlobalAddressSet(path=junos_config_path)
-        AddressSet = address_vrs.get()
-      
-        for item in AddressSet:    
-          if(item.address):
-            if(address_obj in item.address):
-              print ('{} is in Address Set: {}').format(address_obj, item.set_name)
-              address_set = item.set_name
-              pol_dict['Address_Set'].append(address_set)
-              list_of_objects.append(address_set)
-
-        print list_of_objects
         
   '''
   for zone in zone_context:
@@ -340,7 +414,7 @@ def get_host_to_all_info(hostname, source, dest):
   '''  
   # num_zone_policies = PolicyRuleTable(path=junos_config_path).get(policy=['any','any'], options=table_options)   
   # print num_zone_policies
-  
+        
   for addr_obj in list_of_objects:
     for item in policies:
           
@@ -381,30 +455,6 @@ def get_host_to_all_info(hostname, source, dest):
             pol_dict['Policy'] = item.name 
         if(match):
           policies_list.append(pol_dict.copy())  
-
-      elif source_destLogic == True:
-        match = False
-        if isinstance(item.match_src, str):
-          src_list = [item.match_src]
-        else: 
-          src_list = item.match_src
-        for src in src_list:
-          if (addr_obj == src):
-            pol_dict['Source'] = item.match_src
-            if isinstance(item.match_dst, str):
-              my_list = [item.match_dst]
-            else: 
-              my_list = item.match_dst
-            for dst in my_list:
-              if (addr_obj == dst):
-                 pol_dict['Dest'] = item.match_dst
-                 pol_dict['Src_Zone'] = 'global'
-                 pol_dict['Dst_Zone'] = 'global'
-                 pol_dict["Port"] = item.match_app
-                 pol_dict['Action'] = item.action 
-                 pol_dict['Policy'] = item.name 
-        if(match):
-          policies_list.append(pol_dict.copy())   
       
   return policies_list 
 
