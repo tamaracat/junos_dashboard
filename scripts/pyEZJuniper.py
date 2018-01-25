@@ -97,6 +97,21 @@ GlobalAddressSetView:
     address: address/name
 
 ### ---------------------------------------------------------------------------
+### SRX Application set
+### ---------------------------------------------------------------------------
+ApplicationSet:
+  get: applications/application/term
+  key-field:
+    name
+  view: ApplicationSetView
+ApplicationSetView: 
+  groups:
+    match: match
+    then: then
+  fields_match:
+    match_port: destination-port
+
+### ---------------------------------------------------------------------------
 ### SRX zone-to-zone security policy
 ### ---------------------------------------------------------------------------
 SecurityPolicyTable:
@@ -488,34 +503,112 @@ def get_policy_info(hostname, policy_name):
         
   return policies_list 
 
-def get_source_dest_app_policy_info(hostname, source_name, dest_name, app_name):
-      
+def get_source_dest_app_policy_info(hostname, source, dest, app):
+ 
+  policies_list = []
 
-  policies_list = []   
-  
+  pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Defined_As': '','DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
+
+  if(source != '' and dest != ''):
+        
+    pol_dict['Source'] = source
+    pol_dict['Dest'] = dest
+    addressSetFind = source
+    addressSetFindDest = dest
+
   list_of_objects = []
+  list_of_dst_objects = []
 
   junos_config_path = 'junos-config_' + hostname + '.xml'
 
+
   policies_vrs = GlobalPoliciesMatch(path=junos_config_path)
   policies = policies_vrs.get() 
-  
-  for item in policies:
-    match=False     
-    if isinstance(item.match_src, str) and isinstance(item.match_dst, str) and not isinstance(item.match_app, str):   
-      if (source_name == item.match_src and dest_name == item.match_dst):
-        print ("Source is: {} Dest is: {} ").format(item.match_src, item.match_dst) 
-        match = True
-        pol_dict['Source'] = item.match_src
-        pol_dict['Src_Zone'] = 'global'
-        pol_dict['Dst_Zone'] = 'global'
-        pol_dict['Dest'] = item.match_dst
-        pol_dict["Port"] = item.match_app  
-        pol_dict['Action'] = item.action 
-        pol_dict['Policy'] = item.name 
-      if(match):
-        policies_list.append(pol_dict.copy())
+
+  xcvrs = GlobalAddressBook(path=junos_config_path)
+  IP_Address = xcvrs.get() 
+
+  address_vrs = GlobalAddressSet(path=junos_config_path)
+
+  for item in IP_Address:
+    
+    if (item.address == addressSetFind):  
+      address_obj = item.name
+      pol_dict['Defined_As'] = item.name
+      list_of_objects.append(address_obj)
+
+      address_vrs = GlobalAddressSet(path=junos_config_path)
+      AddressSet = address_vrs.get()
+      
+      for item in AddressSet:    
+        if(item.address):
+          if(address_obj in item.address):
+            print ('{} is in Address Set: {}').format(address_obj, item.set_name)
+            address_set = item.set_name
+            pol_dict['Address_Set'].append(address_set)
+            list_of_objects.append(address_set)
+      print list_of_objects
+
+  for item in IP_Address:
+    
+    if (item.address == addressSetFindDest):  
+      dst_address_obj = item.name
+      pol_dict['DstDefined_As'] = item.name
+      list_of_dst_objects.append(dst_address_obj)
+
+      address_vrs = GlobalAddressSet(path=junos_config_path)
+      AddressSet = address_vrs.get()
+      
+      for item in AddressSet:    
+        if(item.address):
+          if(dst_address_obj in item.address):
+            print ('{} is in Address Set: {}').format(dst_address_obj, item.set_name)
+            address_set = item.set_name
+            pol_dict['Dst_Address_Set'].append(address_set)
+            list_of_dst_objects.append(address_set)
+      # print list_of_dst_objects
         
+        
+  for addr_obj in list_of_objects:
+    for item in policies:       
+      if isinstance(item.match_src, str):
+        my_list = [item.match_src]
+      else: 
+        my_list = item.match_src
+      for src in my_list:
+        src_match=False
+        if (addr_obj == src):
+          src_match = True
+          print ("Source match: {}").format(addr_obj)
+          #check to see if destination ojject is in policy
+          for dst_addr_obj in list_of_dst_objects: 
+            if isinstance(item.match_dst, str):
+              my_dst_list = [item.match_dst]
+            else: 
+              my_dst_list = item.match_dst
+            for dst in my_dst_list:
+              dst_match = False
+              if (dst_addr_obj == dst): 
+                dst_match = True
+                if isinstance(item.match_app, str):
+                  my_port_list = [item.match_app]
+                else:
+                  my_port_list = item.match_app
+                for match_port in my_port_list:
+                  port_match_bool=False
+                  if( app == match_port ):
+                    port_match_bool = True
+                    print ("Port match: {}").format(match_port)
+                    pol_dict['Source'] = item.match_src
+                    pol_dict['Src_Zone'] = 'global'
+                    pol_dict['Dst_Zone'] = 'global'
+                    pol_dict['Dest'] = item.match_dst
+                    pol_dict["Port"] = item.match_app 
+                    pol_dict['Action'] = item.action 
+                    pol_dict['Policy'] = item.name 
+                if(src_match and dst_match and port_match_bool):
+                  policies_list.append(pol_dict.copy())
+      
   return policies_list 
 
 def GetArpEntry():

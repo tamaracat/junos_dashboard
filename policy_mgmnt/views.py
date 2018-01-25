@@ -46,6 +46,8 @@ def submit(request):
     if(run):
       sourceDatabaseEntry=False
       destDatabaseEntry=False
+      source_dest_databaseEntry=False
+      all_destDatabaseEntry=False
     # call function and pass parameters to log in to fw
       if (form.cleaned_data["dest_info"] == '' and form.cleaned_data["app_info"] == ''):
         policies = get_host_to_all_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"])
@@ -63,8 +65,10 @@ def submit(request):
         destIP = form.cleaned_data["dest_info"] 
       elif (form.cleaned_data["source_info"] != '' and form.cleaned_data["dest_info"] != '' and form.cleaned_data["app_info"] != ''):
         policies = get_source_dest_app_policy_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
-        all_destDatabaseEntry=True
-       
+        source_dest_databaseEntry=True
+        sourceIP = form.cleaned_data["source_info"]
+        destIP = form.cleaned_data["dest_info"] 
+        Service = form.cleaned_data["app_info"]      
       # dev.close()  
     
       policy_table_clear = Policies.objects.all()
@@ -110,7 +114,7 @@ def submit(request):
               'destIP': destIP,
               'source_dest_databaseEntry':displayPolicy,
               'displayObjectVars' :displayObjectVars,
-             }
+             }        
         return render(request, "submit.html", context)
       else:
         context = { 
