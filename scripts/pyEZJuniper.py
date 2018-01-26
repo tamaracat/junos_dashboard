@@ -5,7 +5,7 @@ from jnpr.junos.exception import LockError
 from jnpr.junos.exception import UnlockError
 from jnpr.junos.exception import ConfigLoadError
 from jnpr.junos.exception import CommitError
-import yaml, json, csv, os
+import ipaddress, yaml, json, csv, os
 from pprint import pprint
 from lxml import etree
 from jnpr.junos.factory import loadyaml
@@ -241,14 +241,15 @@ def create_address_object( host ):
 
   return address_object
 
-def get_source_and_dest_info(hostname, source, dest):
+def get_source_and_dest_info(hostname, source_entered, dest_entered):
 
   policies_list = []
 
   pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Defined_As': '','DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
 
-  if(source != '' and dest != ''):
-        
+  if(source_entered != '' and dest_entered != ''):
+    source = determine_and_format_ip( source_entered ) 
+    dest = determine_and_format_ip( dest_entered )   
     pol_dict['Source'] = source
     pol_dict['Dest'] = dest
     addressSetFind = source
@@ -341,8 +342,21 @@ def get_source_and_dest_info(hostname, source, dest):
       
   return policies_list 
 
-def get_host_to_all_info(hostname, source, dest):
-      
+def determine_and_format_ip( host ):
+
+  try:
+      ipv4host = ipaddress.ip_interface(unicode(host))
+      print ipv4host
+      network = ipv4host.network
+      print network   
+  except ValueError:
+      print 'address/netmask is invalid for IPv4: {} ...exiting'.format(host)
+      exit()
+
+  return str(ipv4host)
+
+def get_host_to_all_info(hostname, source_entered, dest_entered):
+
   pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Defined_As': '','Address_Set': []}
       
   policies_list = []   
@@ -350,11 +364,13 @@ def get_host_to_all_info(hostname, source, dest):
   destLogic = False
   source_destLogic = False
 
-  if( dest == ''):
+  if( dest_entered == ''):
+    source = determine_and_format_ip( source_entered )   
     pol_dict['Source'] = source
     sourceLogic = True
     addressSetFind = source
-  elif(source == ''):
+  elif(source_entered == ''):
+    dest = determine_and_format_ip( dest_entered )
     pol_dict['Dest'] = dest
     destLogic = True
     addressSetFind = dest
@@ -503,14 +519,15 @@ def get_policy_info(hostname, policy_name):
         
   return policies_list 
 
-def get_source_dest_app_policy_info(hostname, source, dest, app):
+def get_source_dest_app_policy_info(hostname, source_entered, dest_entered, app):
  
   policies_list = []
 
   pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Defined_As': '','DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
 
-  if(source != '' and dest != ''):
-        
+  if(source_entered != '' and dest_entered != ''):
+    source = determine_and_format_ip( source_entered ) 
+    dest = determine_and_format_ip( dest_entered )  
     pol_dict['Source'] = source
     pol_dict['Dest'] = dest
     addressSetFind = source
