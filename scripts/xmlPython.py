@@ -43,7 +43,35 @@ fd.close()
 
 #  END of # Netmiko Device Login
 '''
-
+  # zone_vrs = PolicyContextTable(path=junos_config_path)
+  # zone_context = zone_vrs.get() 
+'''
+  for zone in zone_context:
+        # Connects to firewall
+     
+      policies = PolicyRuleTable(path=junos_config_path).get(policy=[zone.from_zone,zone.to_zone], options=table_options)
+      print policies
+      
+      print policies 
+      for addr_obj in list_of_objects:   
+          for item in policies:
+            
+            src_match=False  
+            if(addr_obj == item.match_src ):
+              src_match = True
+              pol_dict['Src_Zone'] = zone.from_zone
+              pol_dict['Dst_Zone'] = zone.to_zone
+              pol_dict['Source'] = item.match_src
+              pol_dict['Dest'] = item.match_dst
+              pol_dict["Port"] = item.match_app
+              pol_dict['Action'] = item.action 
+              pol_dict['Policy'] = item.name 
+   
+            if(src_match):
+              policies_list.append(pol_dict.copy())
+  '''  
+  # num_zone_policies = PolicyRuleTable(path=junos_config_path).get(policy=['any','any'], options=table_options)   
+  # print num_zone_policies
 
 
 def connect_to_firewall(hostname, username, password):
