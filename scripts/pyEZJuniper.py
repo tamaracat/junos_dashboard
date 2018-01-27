@@ -371,8 +371,7 @@ def determine_and_format_ip( host ):
 def process_ip_address(junos_config_path, addressSetFind):
        
   list_of_address_objects = []
-  # list_obj = host_object()
-  # print ('Object Instance Vars: {}').format(list_obj.policies_list_object)
+
   xcvrs = GlobalAddressBook(path=junos_config_path)
   IP_Address = xcvrs.get() 
 
@@ -382,11 +381,9 @@ def process_ip_address(junos_config_path, addressSetFind):
     if (item.address == addressSetFind):    
       address_obj = item.name
       print ('{} is Defined as: {}').format(address_obj, item.name)
-      # list_obj.policies_list_object['Defined_As'] = item.name
       list_of_address_objects.append(address_obj)
  
   print ('Address Objects : {}').format( list_of_address_objects )
-  # print ('Object Instance Vars: {}').format(list_obj.policies_list_object)
   return list_of_address_objects
 
 def process_ip_address_object(junos_config_path, list_of_address_objects): 
@@ -402,7 +399,6 @@ def process_ip_address_object(junos_config_path, list_of_address_objects):
         if(obj in item.address):
           print ('{} is in Address Set: {}').format(obj, item.set_name)
           address_set = item.set_name
-          # list_obj.policies_list_object['Address_Set'].append(address_set)
           list_of_objects.append(address_set)
 
   if list_of_objects == '':       
@@ -437,6 +433,17 @@ def process_object(object_entered, list_of_objects, pol_dict):
 
   return list_of_objects
 
+def process_address_objects():
+
+  list_of_address_objects = process_ip_address(junos_config_path, source)
+  if list_of_address_objects:
+    list_obj.policies_list_object['Defined_As'] = list_of_address_objects
+    list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
+        
+    if list_of_set_objects:
+      list_obj.policies_list_object['Address_Set'] = list_of_set_objects
+      list_of_objects = list_of_address_objects + list_of_set_objects
+
 def get_host_to_all_info(hostname, source_entered, dest_entered):
       
   junos_config_path = 'junos-config_' + hostname + '.xml'
@@ -449,7 +456,6 @@ def get_host_to_all_info(hostname, source_entered, dest_entered):
   if( dest_entered == ''): 
     source = determine_and_format_ip( source_entered )  
     if( isinstance(source, str )): 
-      list_obj.policies_list_object['Source'] = source
       list_of_address_objects = process_ip_address(junos_config_path, source)
       if list_of_address_objects:
         list_obj.policies_list_object['Defined_As'] = list_of_address_objects
@@ -458,20 +464,25 @@ def get_host_to_all_info(hostname, source_entered, dest_entered):
         if list_of_set_objects:
           list_obj.policies_list_object['Address_Set'] = list_of_set_objects
           list_of_objects = list_of_address_objects + list_of_set_objects
+        else:
+          list_of_objects = list_of_address_objects
+          list_obj.policies_list_object['Address_Set'] = ''
       sourceLogic = True
     else:
       exit()
   elif(source_entered == ''):
     dest = determine_and_format_ip( dest_entered )
     if( isinstance(dest, str )):
-      list_obj.policies_list_object['Dest'] = dest
-      list_of_address_objects = process_ip_address(junos_config_path, source)
+      list_of_address_objects = process_ip_address(junos_config_path, dest)
       if list_of_address_objects:
         list_obj.policies_list_object['Defined_As'] = list_of_address_objects
         list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
         if list_of_set_objects:
           list_obj.policies_list_object['Address_Set'] = list_of_set_objects
-          list_of_objects = list_of_address_objects + list_of_set_objects     
+          list_of_objects = list_of_address_objects + list_of_set_objects   
+        else:
+          list_of_objects = list_of_address_objects 
+          list_obj.policies_list_object['Address_Set'] = ''
       destLogic = True
     else:
       exit()
