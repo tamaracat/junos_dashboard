@@ -399,11 +399,11 @@ def process_ip_address(junos_config_path, list_obj, addressSetFind):
           list_of_objects.append(address_set)
   
   if list_of_objects != '':
-    list_of_address_objects.append(list_of_objects)
+    list_of_address_objects = list_of_address_objects + list_of_objects
+    print ('Address SET AND Address Objects : {}').format( list_of_address_objects )
   else:
     print 'No Address Set Found'
-
-  print ('Address SET AND Address Objects : {}').format( list_of_objects )
+    print ('Address Objects : {}').format( list_of_address_objects )
   
   return list_of_address_objects
  
