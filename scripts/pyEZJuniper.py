@@ -5,7 +5,8 @@ from jnpr.junos.exception import LockError
 from jnpr.junos.exception import UnlockError
 from jnpr.junos.exception import ConfigLoadError
 from jnpr.junos.exception import CommitError
-import ipaddress, yaml, json, csv, os
+import ipaddress, yaml, json, csv, os, socket, sys
+from socket import gethostbyname, gaierror
 from pprint import pprint
 from lxml import etree
 from jnpr.junos.factory import loadyaml
@@ -213,7 +214,7 @@ def get_device_configuration(hostname, a_device):
 
 class host_object:
       
-    policies_list_object = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': '', 'Defined_As': [],'DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
+    policies_list_object = {'Policy': '', 'Source': [], 'Source_IP': '', 'Dest': [], 'Dest_IP': '', 'Port': [], 'Action': '', 'Defined_As': [],'DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
 
     def __init__(self):
       
@@ -315,9 +316,9 @@ def determine_and_format_ip( host ):
       network = ipv4host.network
       print network   
   except ValueError:
-      print 'address/netmask is invalid for IPv4: {} ...exiting'.format(host)
-      return 'object'
-
+      print 'address/netmask is invalid for IPv4: {} ...processing as FQDN'.format(host)
+      ipv4host = ''
+    
   return str(ipv4host)
 
 def process_ip_address(junos_config_path, addressSetFind):
@@ -360,30 +361,19 @@ def process_ip_address_object(junos_config_path, list_of_address_objects):
 
   return list_of_objects
 
-def process_object(object_entered, list_of_objects, pol_dict):
-
+def process_object(object_entered):
+  
   try:
-    import dns.resolver
-    import dns.reversename
-    from dns.exception import DNSException
-    HAVE_DNS=True
-  except ImportError:
-    pass
-
-  address_vrs = GlobalAddressSet(path=junos_config_path)
-  AddressSet = address_vrs.get()
-
-  pol_dict['Defined_As'] = address_obj
-      
-  for item in AddressSet:    
-    if(item.address):
-      if(address_obj in item.address):
-        print ('{} is in Address Set: {}').format(address_obj, item.set_name)
-        address_set = item.set_name
-        pol_dict['Address_Set'].append(address_set)
-        list_of_objects.append(address_set)
-
-  return list_of_objects
+    host = socket.gethostbyname(object_entered)
+  except socket.gaierror as e:
+    print e   
+  except socket.error as e:
+    print e    
+  except:
+    print "Unexpected error:", sys.exc_info()[0]
+    raise
+  else:
+    return host
 
 def process_address_objects(junos_config_path, host, list_obj, dest):
   
@@ -437,19 +427,41 @@ def get_host_to_all_info(hostname, source_entered, dest_entered):
 
   if( dest_entered == ''): 
     source = determine_and_format_ip( source_entered )  
-    if( isinstance(source, str )): 
+    if source != '': 
       list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool)
+      list_obj.policies_list_object['Source_IP'] = source
       sourceLogic = True
     else:
-      exit()
+      host = process_object( source_entered )
+      if host:
+        source = determine_and_format_ip( host )  
+        if source != '': 
+          list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool) 
+          list_obj.policies_list_object['Source_IP'] = source
+          sourceLogic = True
+        else:
+          print 'Host {} not valid'.format( source )
+      else:
+        print 'Host {} not valid'.format( source )
   elif(source_entered == ''):  
     dest = determine_and_format_ip( dest_entered )
-    if( isinstance(dest, str )):
+    if dest != '':
       list_of_objects = process_address_objects(junos_config_path, dest, list_obj, dest_bool)
+      list_obj.policies_list_object['Dest_IP'] = dest
       destLogic = True
     else:
-      exit()
-         
+      host = process_object( dest_entered )
+      if host:
+        dest = determine_and_format_ip( host )
+        if dest != '':
+          list_of_objects = process_address_objects(junos_config_path, dest, list_obj, dest_bool)
+          list_obj.policies_list_object['Dest_IP'] = dest
+          destLogic = True
+        else:
+              print 'Host {} not valid'.format( dest )
+      else:
+        print 'Host {} not valid'.format( dest )
+
   for addr_obj in list_of_objects:
     for item in policies:
       if sourceLogic == True:
@@ -501,7 +513,7 @@ def get_policy_info(hostname, policy_name):
         load_values_in_list_obj_instance(item, list_obj)
       if(name_match):
         policies_list.append(list_obj.policies_list_object.copy())
-        
+  del list_obj       
   return policies_list 
 
 def get_source_dest_app_policy_info(hostname, source_entered, dest_entered, app):
@@ -565,7 +577,7 @@ def get_source_dest_app_policy_info(hostname, source_entered, dest_entered, app)
                     print ("Port match: {}").format(match_port)
                 if(src_match and dst_match and port_match_bool):
                   policies_list.append(list_obj.policies_list_object.copy())
-      
+  del list_obj  
   return policies_list 
 
 def GetArpEntry():

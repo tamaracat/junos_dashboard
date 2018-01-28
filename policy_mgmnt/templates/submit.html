@@ -47,6 +47,7 @@
 
     <table  class="table table-striped">
     <thead>
+    <th scope="col">Source Entered</th>
     <th scope="col">Source Host IP</th>
     <th scope="col">Object(s)</th>
     <th scope="col">Address Set(s)</th>   
@@ -56,6 +57,7 @@
      {% for policyrow in displayObjectVars %} 
       <tr>
         <td> {{ sourceIP }}</td>
+        <td> {{ policyrow.source_ip }}</td>
         <td> {{ policyrow.defined_as }}</td>
         <td> {{ policyrow.address_set }}</td>
         {% endfor %}
@@ -86,6 +88,7 @@
 
     <table  class="table table-striped">
     <thead>
+    <th scope="col">Dest Entered</th>
     <th scope="col">Dest Host IP</th>
     <th scope="col">Object(s)</th>
     <th scope="col">Address Set(s)</th>   
@@ -95,6 +98,7 @@
      {% for policyrow in displayObjectVars %} 
       <tr>
         <td> {{ destIP }}</td>
+        <td> {{ policyrow.dest_ip }}</td>
         <td> {{ policyrow.defined_as }}</td>
         <td> {{ policyrow.address_set }}</td>
         {% endfor %}

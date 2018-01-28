@@ -77,6 +77,8 @@ def submit(request):
       for item in policies:
           policy = re.sub(r'[^\w]', " ",str(item.get('Policy')))
           source = str(item.get('Source'))
+          source_ip = str(item.get('Source_IP'))
+          dest_ip = str(item.get('Dest_IP'))
           # source = re.sub(r'[^\w]', " ",str(item.get('Source')))
           dest = str(item.get('Dest'))
           port = str(item.get('Port'))
@@ -86,7 +88,7 @@ def submit(request):
           dst_address_set = str(item.get('Dst_Address_Set'))
           action = re.sub(r'[^\w]', " ",str(item.get('Action')))
            
-          new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=dest, application=port, action=action, defined_as=defined_as, dest_defined_as=dest_defined_as, address_set=address_set, dst_address_set=dst_address_set,annotation='ttangney', firewall=FWName)
+          new_policy = Policies.objects.create_policy(name=policy, source_address=source, source_ip=source_ip, destination_address=dest, dest_ip=dest_ip, application=port, action=action, defined_as=defined_as, dest_defined_as=dest_defined_as, address_set=address_set, dst_address_set=dst_address_set,annotation='ttangney', firewall=FWName)
           new_policy.save()
 
           displayPolicy = Policies.objects.all()
