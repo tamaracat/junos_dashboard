@@ -215,7 +215,8 @@ def get_device_configuration(hostname, a_device):
 class host_object:
       
     policies_list_object = {'Policy': '', 'Source': [], 'Source_IP': '', 'Dest': [], 'Dest_IP': '', 'Port': [], 'Action': '', 'Defined_As': [],'DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
-
+    sourceLogic = False
+    destLogic = False
     def __init__(self):
       
         self.policies_list_object
@@ -385,16 +386,18 @@ def process_address_objects(junos_config_path, host, list_obj, dest):
   if list_of_address_objects: 
     if dest:      
       list_obj.policies_list_object['DstDefined_As'] = list_of_address_objects
+      list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
     else:
       list_obj.policies_list_object['Defined_As'] = list_of_address_objects
-    list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
+      list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
     if list_of_set_objects:
       print'list_of_set_objects is {}'.format(list_of_set_objects)
       if dest:
         list_obj.policies_list_object['Dst_Address_Set'] = list_of_set_objects
+        list_of_objects = list_of_address_objects + list_of_set_objects
       else:
         list_obj.policies_list_object['Address_Set'] = list_of_set_objects
-      list_of_objects = list_of_address_objects + list_of_set_objects
+        list_of_objects = list_of_address_objects + list_of_set_objects
     else:
       list_of_objects = list_of_address_objects
       list_obj.policies_list_object['Address_Set'] = ''
@@ -411,6 +414,56 @@ def load_values_in_list_obj_instance(item, list_obj):
   list_obj.policies_list_object['Action'] = item.action 
   list_obj.policies_list_object['Policy'] = item.name 
 
+def process_source(junos_config_path, list_obj, source_entered):
+
+  source_bool=False
+  dest_bool=True
+
+  source = determine_and_format_ip( source_entered )  
+  if source != '': 
+      list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool)
+      list_obj.policies_list_object['Source_IP'] = source
+      list_obj.sourceLogic = True
+  else:
+    host = process_object( source_entered )
+    if host:
+      source = determine_and_format_ip( host )  
+      if source != '': 
+          list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool) 
+          list_obj.policies_list_object['Source_IP'] = source
+          list_obj.sourceLogic = True
+      else:
+          print 'Host {} not valid'.format( source )
+    else:
+        print 'Host {} not valid'.format( source )
+
+  return list_of_objects
+
+def process_dest(junos_config_path, list_obj, dest_entered):
+
+  source_bool=False
+  dest_bool=True
+
+  dest = determine_and_format_ip( dest_entered )
+  if dest != '':
+      list_of_objects = process_address_objects(junos_config_path, dest, list_obj, dest_bool)
+      list_obj.policies_list_object['Dest_IP'] = dest
+      list_obj.destLogic = True
+  else:
+    host = process_object( dest_entered )   
+    if host:
+      dest = determine_and_format_ip( host )    
+      if dest != '':
+          list_of_objects = process_address_objects(junos_config_path, dest, list_obj, dest_bool)
+          list_obj.policies_list_object['Dest_IP'] = dest
+          list_obj.destLogic = True
+      else:
+        print 'Host {} not valid'.format( dest )
+    else:
+      print 'Host {} not valid'.format( dest )
+
+  return list_of_objects
+
 def get_host_to_all_info(hostname, source_entered, dest_entered):
       
   junos_config_path = 'junos-config_' + hostname + '.xml'
@@ -422,49 +475,16 @@ def get_host_to_all_info(hostname, source_entered, dest_entered):
   sourceLogic = False
   destLogic = False
   list_of_objects = []
-  source_bool=False
-  dest_bool=True
+  
 
-  if( dest_entered == ''): 
-    source = determine_and_format_ip( source_entered )  
-    if source != '': 
-      list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool)
-      list_obj.policies_list_object['Source_IP'] = source
-      sourceLogic = True
-    else:
-      host = process_object( source_entered )
-      if host:
-        source = determine_and_format_ip( host )  
-        if source != '': 
-          list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool) 
-          list_obj.policies_list_object['Source_IP'] = source
-          sourceLogic = True
-        else:
-          print 'Host {} not valid'.format( source )
-      else:
-        print 'Host {} not valid'.format( source )
+  if( dest_entered == ''):
+    list_of_objects = process_source(junos_config_path, list_obj, source_entered)
   elif(source_entered == ''):  
-    dest = determine_and_format_ip( dest_entered )
-    if dest != '':
-      list_of_objects = process_address_objects(junos_config_path, dest, list_obj, dest_bool)
-      list_obj.policies_list_object['Dest_IP'] = dest
-      destLogic = True
-    else:
-      host = process_object( dest_entered )
-      if host:
-        dest = determine_and_format_ip( host )
-        if dest != '':
-          list_of_objects = process_address_objects(junos_config_path, dest, list_obj, dest_bool)
-          list_obj.policies_list_object['Dest_IP'] = dest
-          destLogic = True
-        else:
-              print 'Host {} not valid'.format( dest )
-      else:
-        print 'Host {} not valid'.format( dest )
+    list_of_objects = process_dest(junos_config_path, list_obj, dest_entered)
 
   for addr_obj in list_of_objects:
     for item in policies:
-      if sourceLogic == True:
+      if list_obj.sourceLogic == True:
         src_match=False     
         if isinstance(item.match_src, str):
           my_list = [item.match_src]
@@ -477,7 +497,7 @@ def get_host_to_all_info(hostname, source_entered, dest_entered):
         if(src_match):
           policies_list.append(list_obj.policies_list_object.copy())
           
-      elif destLogic == True:
+      elif list_obj.destLogic == True:
         match = False
         if isinstance(item.match_dst, str):
           my_list = [item.match_dst]
