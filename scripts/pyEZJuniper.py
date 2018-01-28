@@ -433,9 +433,14 @@ def process_object(object_entered, list_of_objects, pol_dict):
 
   return list_of_objects
 
-def process_address_objects():
+def process_address_objects(junos_config_path, host):
+  
+  list_obj = host_object()
+  list_of_address_objects = []
+  list_of_set_objects = []
+  list_of_objects = []
 
-  list_of_address_objects = process_ip_address(junos_config_path, source)
+  list_of_address_objects = process_ip_address(junos_config_path, host)
   if list_of_address_objects:
     list_obj.policies_list_object['Defined_As'] = list_of_address_objects
     list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
@@ -443,6 +448,11 @@ def process_address_objects():
     if list_of_set_objects:
       list_obj.policies_list_object['Address_Set'] = list_of_set_objects
       list_of_objects = list_of_address_objects + list_of_set_objects
+    else:
+      list_of_objects = list_of_address_objects
+      list_obj.policies_list_object['Address_Set'] = ''
+
+  return list_of_objects
 
 def get_host_to_all_info(hostname, source_entered, dest_entered):
       
@@ -453,36 +463,19 @@ def get_host_to_all_info(hostname, source_entered, dest_entered):
   sourceLogic = False
   destLogic = False
   list_of_objects = []
+
   if( dest_entered == ''): 
     source = determine_and_format_ip( source_entered )  
     if( isinstance(source, str )): 
-      list_of_address_objects = process_ip_address(junos_config_path, source)
-      if list_of_address_objects:
-        list_obj.policies_list_object['Defined_As'] = list_of_address_objects
-        list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
-        
-        if list_of_set_objects:
-          list_obj.policies_list_object['Address_Set'] = list_of_set_objects
-          list_of_objects = list_of_address_objects + list_of_set_objects
-        else:
-          list_of_objects = list_of_address_objects
-          list_obj.policies_list_object['Address_Set'] = ''
+      list_of_objects = process_address_objects(junos_config_path, source)
       sourceLogic = True
     else:
       exit()
   elif(source_entered == ''):
+    
     dest = determine_and_format_ip( dest_entered )
     if( isinstance(dest, str )):
-      list_of_address_objects = process_ip_address(junos_config_path, dest)
-      if list_of_address_objects:
-        list_obj.policies_list_object['Defined_As'] = list_of_address_objects
-        list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
-        if list_of_set_objects:
-          list_obj.policies_list_object['Address_Set'] = list_of_set_objects
-          list_of_objects = list_of_address_objects + list_of_set_objects   
-        else:
-          list_of_objects = list_of_address_objects 
-          list_obj.policies_list_object['Address_Set'] = ''
+      list_of_objects = process_address_objects(junos_config_path, dest)
       destLogic = True
     else:
       exit()
