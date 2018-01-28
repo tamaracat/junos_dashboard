@@ -213,7 +213,7 @@ def get_device_configuration(hostname, a_device):
 
 class host_object:
       
-    policies_list_object = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': '', 'Defined_As': [],'Address_Set': []}
+    policies_list_object = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': '', 'Defined_As': [],'DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
 
     def __init__(self):
       
@@ -253,71 +253,31 @@ def create_address_object( host ):
   return address_object
 
 def get_source_and_dest_info(hostname, source_entered, dest_entered):
-
+  
+  junos_config_path = 'junos-config_' + hostname + '.xml'
+  list_obj = host_object()
   policies_list = []
-
-  pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': [], 'Defined_As': '','DstDefined_As': '','Address_Set': [],'Dst_Address_Set': []}
+  list_of_objects = []
+  list_of_dst_objects = []
+  dest_bool=True
+  source_bool=False
 
   if(source_entered != '' and dest_entered != ''):
     source = determine_and_format_ip( source_entered ) 
     dest = determine_and_format_ip( dest_entered )   
-    pol_dict['Source'] = source
-    pol_dict['Dest'] = dest
-    addressSetFind = source
-    addressSetFindDest = dest
 
-  list_of_objects = []
-  list_of_dst_objects = []
-
-  junos_config_path = 'junos-config_' + hostname + '.xml'
-
+  if( isinstance(source, str )): 
+      list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool)
+  else:
+      exit()
+  if( isinstance(dest, str )):
+      list_of_dst_objects = process_address_objects(junos_config_path, dest, list_obj, dest_bool)
+  else:
+      exit()
 
   policies_vrs = GlobalPoliciesMatch(path=junos_config_path)
   policies = policies_vrs.get() 
-
-  xcvrs = GlobalAddressBook(path=junos_config_path)
-  IP_Address = xcvrs.get() 
-
-  address_vrs = GlobalAddressSet(path=junos_config_path)
-
-  for item in IP_Address:
-    
-    if (item.address == addressSetFind):  
-      address_obj = item.name
-      pol_dict['Defined_As'] = item.name
-      list_of_objects.append(address_obj)
-
-      address_vrs = GlobalAddressSet(path=junos_config_path)
-      AddressSet = address_vrs.get()
-      
-      for item in AddressSet:    
-        if(item.address):
-          if(address_obj in item.address):
-            print ('{} is in Address Set: {}').format(address_obj, item.set_name)
-            address_set = item.set_name
-            pol_dict['Address_Set'].append(address_set)
-            list_of_objects.append(address_set)
-      print list_of_objects
-
-  for item in IP_Address:
-    
-    if (item.address == addressSetFindDest):  
-      dst_address_obj = item.name
-      pol_dict['DstDefined_As'] = item.name
-      list_of_dst_objects.append(dst_address_obj)
-
-      address_vrs = GlobalAddressSet(path=junos_config_path)
-      AddressSet = address_vrs.get()
-      
-      for item in AddressSet:    
-        if(item.address):
-          if(dst_address_obj in item.address):
-            print ('{} is in Address Set: {}').format(dst_address_obj, item.set_name)
-            address_set = item.set_name
-            pol_dict['Dst_Address_Set'].append(address_set)
-            list_of_dst_objects.append(address_set)
-        
-        
+     
   for addr_obj in list_of_objects:
     for item in policies:
       src_match=False     
@@ -328,7 +288,7 @@ def get_source_and_dest_info(hostname, source_entered, dest_entered):
       for src in my_list:
         if (addr_obj == src):
           src_match = True
-          print ("Source match: {}").format(addr_obj)
+          # print ("Source match: {}").format(addr_obj)
           #check to see if destination ojject is in policy
           for dst_addr_obj in list_of_dst_objects:
             dst_match=False
@@ -340,23 +300,15 @@ def get_source_and_dest_info(hostname, source_entered, dest_entered):
               if (dst_addr_obj == dst): 
                 dst_match = True
                 print ("Dest match: {}").format(dst_addr_obj)
-                pol_dict['Source'] = item.match_src
-                pol_dict['Src_Zone'] = 'global'
-                pol_dict['Dst_Zone'] = 'global'
-                pol_dict['Dest'] = item.match_dst
-                pol_dict["Port"] = item.match_app
-                pol_dict['Action'] = item.action 
-                pol_dict['Policy'] = item.name 
+                load_values_in_list_obj_instance(item, list_obj)
             if(src_match and dst_match):
-              policies_list.append(pol_dict.copy())
-      
+              policies_list.append(list_obj.policies_list_object.copy())
+
+  del list_obj   
   return policies_list 
 
 def determine_and_format_ip( host ):
       
-  list_obj = host_object()
-
-  print list_obj.policies_list_object
   try:
       ipv4host = ipaddress.ip_interface(unicode(host))
       print ipv4host
@@ -401,9 +353,9 @@ def process_ip_address_object(junos_config_path, list_of_address_objects):
           address_set = item.set_name
           list_of_objects.append(address_set)
 
-  if list_of_objects == '':       
+  if not list_of_objects:       
     print 'No Address Set Found'
-  elif list_of_objects != '':
+  elif list_of_objects:
     print ('Address SET Objects : {}').format( list_of_objects )
 
   return list_of_objects
@@ -433,56 +385,71 @@ def process_object(object_entered, list_of_objects, pol_dict):
 
   return list_of_objects
 
-def process_address_objects(junos_config_path, host):
+def process_address_objects(junos_config_path, host, list_obj, dest):
   
-  list_obj = host_object()
   list_of_address_objects = []
   list_of_set_objects = []
   list_of_objects = []
 
   list_of_address_objects = process_ip_address(junos_config_path, host)
-  if list_of_address_objects:
-    list_obj.policies_list_object['Defined_As'] = list_of_address_objects
+  if list_of_address_objects: 
+    if dest:      
+      list_obj.policies_list_object['DstDefined_As'] = list_of_address_objects
+    else:
+      list_obj.policies_list_object['Defined_As'] = list_of_address_objects
     list_of_set_objects = process_ip_address_object(junos_config_path, list_of_address_objects)
-        
     if list_of_set_objects:
-      list_obj.policies_list_object['Address_Set'] = list_of_set_objects
+      print'list_of_set_objects is {}'.format(list_of_set_objects)
+      if dest:
+        list_obj.policies_list_object['Dst_Address_Set'] = list_of_set_objects
+      else:
+        list_obj.policies_list_object['Address_Set'] = list_of_set_objects
       list_of_objects = list_of_address_objects + list_of_set_objects
     else:
       list_of_objects = list_of_address_objects
       list_obj.policies_list_object['Address_Set'] = ''
-
+  
   return list_of_objects
+
+def load_values_in_list_obj_instance(item, list_obj):
+      
+  list_obj.policies_list_object['Source'] = item.match_src
+  list_obj.policies_list_object['Src_Zone'] = 'global'
+  list_obj.policies_list_object['Dst_Zone'] = 'global'
+  list_obj.policies_list_object['Dest'] = item.match_dst
+  list_obj.policies_list_object["Port"] = item.match_app
+  list_obj.policies_list_object['Action'] = item.action 
+  list_obj.policies_list_object['Policy'] = item.name 
 
 def get_host_to_all_info(hostname, source_entered, dest_entered):
       
   junos_config_path = 'junos-config_' + hostname + '.xml'
+  policies_vrs = GlobalPoliciesMatch(path=junos_config_path)
+  policies = policies_vrs.get() 
 
   list_obj = host_object()
   policies_list = []   
   sourceLogic = False
   destLogic = False
   list_of_objects = []
+  source_bool=False
+  dest_bool=True
 
   if( dest_entered == ''): 
     source = determine_and_format_ip( source_entered )  
     if( isinstance(source, str )): 
-      list_of_objects = process_address_objects(junos_config_path, source)
+      list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool)
       sourceLogic = True
     else:
       exit()
-  elif(source_entered == ''):
-    
+  elif(source_entered == ''):  
     dest = determine_and_format_ip( dest_entered )
     if( isinstance(dest, str )):
-      list_of_objects = process_address_objects(junos_config_path, dest)
+      list_of_objects = process_address_objects(junos_config_path, dest, list_obj, dest_bool)
       destLogic = True
     else:
       exit()
-  
-  policies_vrs = GlobalPoliciesMatch(path=junos_config_path)
-  policies = policies_vrs.get() 
-       
+         
   for addr_obj in list_of_objects:
     for item in policies:
       if sourceLogic == True:
@@ -493,15 +460,8 @@ def get_host_to_all_info(hostname, source_entered, dest_entered):
           my_list = item.match_src
         for src in my_list:
           if (addr_obj == src):
-            print addr_obj
             src_match = True
-            list_obj.policies_list_object['Source'] = item.match_src
-            list_obj.policies_list_object['Src_Zone'] = 'global'
-            list_obj.policies_list_object['Dst_Zone'] = 'global'
-            list_obj.policies_list_object['Dest'] = item.match_dst
-            list_obj.policies_list_object["Port"] = item.match_app
-            list_obj.policies_list_object['Action'] = item.action 
-            list_obj.policies_list_object['Policy'] = item.name 
+            load_values_in_list_obj_instance(item, list_obj)
         if(src_match):
           policies_list.append(list_obj.policies_list_object.copy())
           
@@ -514,17 +474,10 @@ def get_host_to_all_info(hostname, source_entered, dest_entered):
         for dst in my_list:
           if (addr_obj == dst):
             match = True
-            list_obj.policies_list_object['Source'] = item.match_src
-            list_obj.policies_list_object['Src_Zone'] = 'global'
-            list_obj.policies_list_object['Dst_Zone'] = 'global'
-            list_obj.policies_list_object['Dest'] = item.match_dst
-            list_obj.policies_list_object["Port"] = item.match_app
-            list_obj.policies_list_object['Action'] = item.action 
-            list_obj.policies_list_object['Policy'] = item.name 
+            load_values_in_list_obj_instance(item, list_obj)
         if(match):
           policies_list.append(list_obj.policies_list_object.copy()) 
-
-  # print list_obj.policies_list_object   
+   
   del list_obj
   return policies_list 
 
@@ -532,9 +485,7 @@ def get_policy_info(hostname, policy_name):
       
   pol_dict = {'Policy': '', 'Source': [], 'Dest': [], 'Port': [], 'Action': '', 'Defined_As': '','Address_Set': []}
       
-
-  policies_list = []   
-  
+  policies_list = []    
   list_of_objects = []
 
   junos_config_path = 'junos-config_' + hostname + '.xml'
@@ -603,7 +554,6 @@ def get_source_dest_app_policy_info(hostname, source_entered, dest_entered, app)
             address_set = item.set_name
             pol_dict['Address_Set'].append(address_set)
             list_of_objects.append(address_set)
-      print list_of_objects
 
   for item in IP_Address:
     
