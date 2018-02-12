@@ -68,7 +68,19 @@ def submit(request):
         source_dest_databaseEntry=True
         sourceIP = form.cleaned_data["source_info"]
         destIP = form.cleaned_data["dest_info"] 
+        Service = form.cleaned_data["app_info"]  
+      elif (form.cleaned_data["source_info"] != '' and form.cleaned_data["dest_info"] == '' and form.cleaned_data["app_info"] != ''):
+        policies = get_source_dest_app_policy_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
+        source_dest_databaseEntry=True
+        sourceIP = form.cleaned_data["source_info"]
+        destIP = form.cleaned_data["dest_info"] 
         Service = form.cleaned_data["app_info"]      
+      elif (form.cleaned_data["source_info"] == '' and form.cleaned_data["dest_info"] != '' and form.cleaned_data["app_info"] != ''):
+        policies = get_source_dest_app_policy_info(hostname, form.cleaned_data["source_info"], form.cleaned_data["dest_info"], form.cleaned_data["app_info"])
+        source_dest_databaseEntry=True
+        sourceIP = form.cleaned_data["source_info"]
+        destIP = form.cleaned_data["dest_info"] 
+        Service = form.cleaned_data["app_info"]          
       # dev.close()  
     
       policy_table_clear = Policies.objects.all()
@@ -180,8 +192,8 @@ def modify_policy(request):
             dest = str(item.get('Dest'))
             port = str(item.get('Port'))
             action = str(item.get('Action'))
-        
-            new_policy = Policies.objects.create_policy(name=policy, source_address=source, destination_address=str(item.get('Dest')), application=port, action=action, defined_as="empty", dest_defined_as="empty", address_set="none", dst_address_set="none", annotation='ttangney', firewall=FWName)
+
+            new_policy = Policies.objects.create_policy(name=policy, source_address=source, source_ip="empty", destination_address=str(item.get('Dest')), dest_ip="empty", application=port, action=action, defined_as="empty", dest_defined_as="empty", address_set="none", dst_address_set="none", annotation='ttangney', firewall=FWName)
             new_policy.save()
 
             displayPolicy = Policies.objects.all()
@@ -273,8 +285,11 @@ def policyUpdate(request):
         d = datetime.datetime.now().date()
         day = next_weekday(d, 1) # 0 = Monday, 1=Tuesday, 2=Wednesday...
         print('next_tuesday: {}').format(day)
-        patch_day_str = str(day.month) + str(day.day) + str(day.year)
-        eng_patch_day_str = str(day.month) + '/' + str(day.day) + '/' + str(day.year)
+        year = str(day.year).lstrip('20')
+        month = str(day.month).zfill(2)
+        day = str(day.day).zfill(2)
+        patch_day_str = month + day + year
+        eng_patch_day_str = month + '/' + day + '/' + year
         pol_dict['Date'] = patch_day_str 
         pol_dict['EngDate'] = eng_patch_day_str 
           
@@ -282,8 +297,12 @@ def policyUpdate(request):
         d = datetime.datetime.now().date()
         day = next_weekday(d, 4) # 0 = Monday, 1=Tuesday, 2=Wednesday...
         print('next_friday: {}').format(day)
-        patch_day_str = str(day.month) + str(day.day) + str(day.year)
-        eng_patch_day_str = str(day.month) + '/' + str(day.day) + '/' + str(day.year)
+        year = str(day.year).lstrip('20')
+        month = str(day.month).zfill(2)
+        day = str(day.day).zfill(2)
+        patch_day_str = month + day + year
+        eng_patch_day_str = month + '/' + day + '/' + year
+
         pol_dict['Date'] = patch_day_str 
         pol_dict['EngDate'] = eng_patch_day_str 
          

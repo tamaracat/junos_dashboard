@@ -48,7 +48,7 @@
     <table  class="table table-striped">
     <thead>
     <th scope="col">Source Entered</th>
-    <th scope="col">Source Host IP</th>
+    <th scope="col">Source IP</th>
     <th scope="col">Object(s)</th>
     <th scope="col">Address Set(s)</th>   
     </tr> 
@@ -75,7 +75,7 @@
     <tbody> 
         {% for policyrow in source_databaseEntry %} 
       <tr>
-        <td> {{ policyrow.name }}</td>
+        <td>{{ policyrow.name }}</td>
         <td>{{ policyrow.source_address }}</td>
         <td>{{ policyrow.destination_address }}</td>
         <td>{{ policyrow.application }}</td>
@@ -89,7 +89,7 @@
     <table  class="table table-striped">
     <thead>
     <th scope="col">Dest Entered</th>
-    <th scope="col">Dest Host IP</th>
+    <th scope="col">Dest IP</th>
     <th scope="col">Object(s)</th>
     <th scope="col">Address Set(s)</th>   
     </tr> 
@@ -130,10 +130,12 @@
 
     <table  class="table table-striped">
     <thead>
-    <th scope="col">Src Host IP</th>
+    <th scope="col">Source Entered</th>
+    <th scope="col">Source IP</th>
     <th scope="col">Object(s)</th>
     <th scope="col">Address Set(s)</th> 
-    <th scope="col">Dest Host IP</th>
+    <th scope="col">Dest Entered</th>
+    <th scope="col">Dest IP</th>
     <th scope="col">Object(s)</th>
     <th scope="col">Address Set(s)</th>   
     </tr> 
@@ -142,9 +144,11 @@
      {% for policyrow in displayObjectVars %} 
       <tr>
         <td> {{ sourceIP }}</td>
+        <td> {{ policyrow.source_ip }}</td>
         <td> {{ policyrow.defined_as }}</td>
         <td> {{ policyrow.address_set }}</td>
-        <td> {{ destIP }}</td>     
+        <td> {{ destIP }}</td> 
+        <td> {{ policyrow.dest_ip }}</td>    
         <td> {{ policyrow.dest_defined_as }}</td>
         <td> {{ policyrow.dest_address_set }}</td>
         {% endfor %}

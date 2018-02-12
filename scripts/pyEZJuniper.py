@@ -577,26 +577,8 @@ def get_source_dest_app_policy_info(hostname, source_entered, dest_entered, app)
             #check to see if destination object is in policy
             if list_of_dst_objects:
               for dst_addr_obj in list_of_dst_objects: 
-                if isinstance(item.match_dst, str):
-                  my_dst_list = [item.match_dst]
-                else: 
-                  my_dst_list = item.match_dst
-                for dst in my_dst_list:
-                  dst_match = False
-                  if (dst_addr_obj == dst): 
-                    dst_match = True
-                    if isinstance(item.match_app, str):
-                      my_port_list = [item.match_app]
-                    else:
-                      my_port_list = item.match_app
-                    for match_port in my_port_list:
-                      port_match_bool=False
-                      if( app == match_port ):
-                        port_match_bool = True
-                        load_values_in_list_obj_instance(item, list_obj)
-                        print ("Port match: {}").format(match_port)
-                    if(src_match and dst_match and port_match_bool):
-                      policies_list.append(list_obj.policies_list_object.copy())
+                if process_and_load_dest_objects(item, list_obj, dst_addr_obj, app):
+                  policies_list.append(list_obj.policies_list_object.copy())
             else:
               if isinstance(item.match_app, str):
                  my_port_list = [item.match_app]
@@ -612,9 +594,8 @@ def get_source_dest_app_policy_info(hostname, source_entered, dest_entered, app)
                   policies_list.append(list_obj.policies_list_object.copy())
 
   elif list_of_dst_objects:
-      
-    for dst_addr_obj in list_of_dst_objects: 
-      for item in policies:
+    for item in policies:  
+      for dst_addr_obj in list_of_dst_objects:  
         if process_and_load_dest_objects(item, list_obj, dst_addr_obj, app):
           policies_list.append(list_obj.policies_list_object.copy())
 
@@ -636,17 +617,15 @@ def process_and_load_dest_objects(item, list_obj, dst_addr_obj, app):
           my_port_list = [item.match_app]
         else:
           my_port_list = item.match_app           
-          for match_port in my_port_list:
-            port_match_bool=False
-            print app
-            print match_port
-            if( app == match_port ):  
-              print 'found match for {}'.format( app)
-              port_match_bool = True
-              load_values_in_list_obj_instance(item, list_obj)
-              print ("Port match: {}").format(match_port)
-            if(dst_match and port_match_bool):
-              return True
+        for match_port in my_port_list:
+          port_match_bool=False
+          if( app == match_port ):  
+            print 'found match for {}'.format( app)
+            port_match_bool = True
+            load_values_in_list_obj_instance(item, list_obj)
+            print ("Port match: {}").format(match_port)
+          if(dst_match and port_match_bool):
+            return True
   return False
 
 def GetArpEntry():
