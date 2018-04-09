@@ -419,7 +419,8 @@ def process_source(junos_config_path, list_obj, source_entered):
   source_bool=False
   dest_bool=True
 
-  source = determine_and_format_ip( source_entered )  
+  source = determine_and_format_ip( source_entered )
+  
   if source != '': 
       list_of_objects = process_address_objects(junos_config_path, source, list_obj, source_bool)
       list_obj.policies_list_object['Source_IP'] = source
