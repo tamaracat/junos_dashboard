@@ -12,7 +12,7 @@ click==6.7
 configparser==3.5.0
 cryptography==2.0.3
 deepdiff==3.3.0
-Django==1.11.5
+Django==1.11.29
 django-encrypted-fields==1.1.2
 django-extensions==1.9.1
 dominate==2.3.1
