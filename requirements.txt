@@ -55,7 +55,7 @@ PyNaCl==1.1.2
 pyserial==3.4
 python-keyczar==0.716
 pytz==2017.2
-PyYAML==3.12
+PyYAML==5.4
 requests==2.18.4
 scp==0.10.2
 six==1.10.0
