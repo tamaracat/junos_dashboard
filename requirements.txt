@@ -37,7 +37,7 @@ jsonpickle==0.9.5
 jsonschema==2.6.0
 junos-eznc==2.1.7
 lazy-object-proxy==1.2.2
-lxml==4.0.0
+lxml==4.6.3
 MarkupSafe==1.0
 mccabe==0.6.1
 ncclient==0.5.3
