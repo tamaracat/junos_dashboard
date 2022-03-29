@@ -42,7 +42,7 @@ MarkupSafe==1.0
 mccabe==0.6.1
 ncclient==0.5.3
 netaddr==0.7.19
-paramiko==2.3.1
+paramiko==2.10.1
 pexpect==4.2.1
 ptyprocess==0.5.2
 py-radix==0.9.7
